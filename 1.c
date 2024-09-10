@@ -1,4 +1,5 @@
 #include <errno.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,13 +7,34 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-void usage(void) {
-    printf("usage: 1\n");
+extern char **environ;
+
+void usage(char *name) {
+    printf("usage: %s [-i] [-s] [-p] [-u] [-Unew_limit] [-c] [-Csize] [-d] "
+           "[-v] [-Vname=value] [-h]\n",
+           name);
+}
+
+unsigned long read_uint(char *str) {
+    for (int i = 0; str[i]; i++) {
+        if (str[i] < '0' || str[i] > '9') {
+            printf("invalid number\n");
+            exit(1);
+        }
+    }
+
+    return atoi(str);
 }
 
 int main(int argc, char **argv, char **envp) {
     int c;
-    while ((c = getopt(argc, argv, "ispuU:cC:dvV:")) != -1) {
+
+    if (argc == 1) {
+        usage(argv[0]);
+        return 0;
+    }
+
+    while ((c = getopt(argc, argv, "hispuU:cC:dvV:")) != -1) {
         if (c == 'i') {
             uid_t ruid = getuid();
             uid_t uid = geteuid();
@@ -41,7 +63,7 @@ int main(int argc, char **argv, char **envp) {
             }
             printf("ulimit: %lu\n", rlimit.rlim_cur);
         } else if (c == 'U') {
-            rlim_t set = atoi(optarg);
+            rlim_t set = read_uint(optarg);
 
             struct rlimit rlimit;
             if (getrlimit(RLIMIT_NOFILE, &rlimit) != 0) {
@@ -63,7 +85,7 @@ int main(int argc, char **argv, char **envp) {
             }
             printf("core file max size: %lu\n", rlimit.rlim_cur);
         } else if (c == 'C') {
-            rlim_t set = atoi(optarg);
+            rlim_t set = read_uint(optarg);
 
             struct rlimit rlimit;
             if (getrlimit(RLIMIT_CORE, &rlimit) != 0) {
@@ -80,19 +102,17 @@ int main(int argc, char **argv, char **envp) {
         } else if (c == 'd') {
             char buf[1024];
             if (getcwd(buf, sizeof(buf)) == NULL) {
-                printf("%s\n", buf);
                 perror("getcwd failed");
                 return 1;
             }
             printf("%s\n", buf);
         } else if (c == 'v') {
-            for (char **env = envp; *env != 0; env++) {
+            for (char **env = environ; *env != 0; env++) {
                 printf("%s\n", *env);
             }
         } else if (c == 'V') {
             int n = 0;
             while (1) {
-                // printf("%c\n", optarg[n]);
                 if (optarg[n] == '=') {
                     break;
                 } else if (optarg[n] == 0) {
@@ -118,8 +138,11 @@ int main(int argc, char **argv, char **envp) {
 
             free(name);
             free(value);
+        } else if (c == 'h') {
+            usage(argv[0]);
         } else {
-            usage();
+            usage(argv[0]);
+            return 1;
         }
     }
 }
