@@ -3,7 +3,6 @@
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
-extern char *tzname[];
 
 int main() {
     printf("real uid: %d\n", getuid());

@@ -8,8 +8,8 @@ typedef struct Item {
 } Item;
 
 int main() {
-    Item *first;
-    Item *current;
+    Item *first = NULL;
+    Item *current = NULL;
 
     char buf[2048];
 
