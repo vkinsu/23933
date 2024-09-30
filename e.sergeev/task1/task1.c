@@ -1,119 +1,87 @@
-#define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
-#include <stdlib.h>
 #include <unistd.h>
+#include <stdlib.h>
 #include <sys/types.h>
-#include <sys/stat.h>
 #include <sys/resource.h>
-#include <errno.h>
-#include <string.h>
 #include <limits.h>
+#include <string.h>
+#include <errno.h>
+#include <pwd.h>
+#include <grp.h>
+#include <sys/stat.h>
 
-void print_usage(char* program_name) {
-    fprintf(stderr, "Usage: %s [-i] [-s] [-p] [-u] [-Unew_ulimit] [-c] [-Csize] [-d] [-v] [-Vname=value] ...n", program_name);
-    exit(1);
-}
-
-int main(int argc, char** argv) {
+int main(int argc, char *argv[]) {
     int opt;
-    while ((opt = getopt(argc, argv, "ispucC:d:vV:U:")) != -1) {
+    while ((opt = getopt(argc, argv, "ispucU:C:dvV:")) != -1) {
+    	struct rlimit lim;
         switch (opt) {
-        case 'i':
-            printf("Real UID: %dn", getuid());
-            printf("Effective UID: %dn", geteuid());
-            printf("Real GID: %dn", getgid());
-            printf("Effective GID: %dn", getegid());
-            break;
-        case 's':
-            if (setpgid(0, 0) == -1) {
-                perror("setpgid");
-                exit(1);
-            }
-            break;
-        case 'p':
-            printf("Process ID: %dn", getpid());
-            printf("Parent process ID: %dn", getppid());
-            printf("Process group ID: %dn", getpgid(0));
-            break;
-        case 'u': {
-            struct rlimit rlim;
-            if (getrlimit(RLIMIT_AS, &rlim) == -1) {
-                perror("getrlimit");
-                exit(1);
-            }
-            printf("ulimit: %ldn", rlim.rlim_cur);
-            break;
-        }
-        case 'U': {
-            long new_ulimit = atol(optarg);
-            if (new_ulimit == 0 && errno == ERANGE) {
-                fprintf(stderr, "Invalid ulimit value: %sn", optarg);
-                exit(1);
-            }
-            struct rlimit rlim;
-            rlim.rlim_cur = new_ulimit;
-            rlim.rlim_max = new_ulimit;
-            if (setrlimit(RLIMIT_AS, &rlim) == -1) {
-                perror("setrlimit");
-                exit(1);
-            }
-            break;
-        }
-        case 'c': {
-            struct rlimit rlim;
-            if (getrlimit(RLIMIT_CORE, &rlim) == -1) {
-                perror("getrlimit");
-                exit(1);
-            }
-            printf("Core file size limit: %ldn", rlim.rlim_cur);
-            break;
-        }
-        case 'C': {
-            long size = atol(optarg);
-            if (size == 0 && errno == ERANGE) {
-                fprintf(stderr, "Invalid core file size: %sn", optarg);
-                exit(1);
-            }
-            struct rlimit rlim;
-            rlim.rlim_cur = size;
-            rlim.rlim_max = size;
-            if (setrlimit(RLIMIT_CORE, &rlim) == -1) {
-                perror("setrlimit");
-                exit(1);
-            }
-            break;
-        }
-        case 'd':
-            char cwd[PATH_MAX];
-            if (getcwd(cwd, sizeof(cwd)) == NULL) {
-                perror("getcwd");
-                exit(1);
-            }
-            printf("Current working directory: %sn", cwd);
-            break;
-        case 'v': {
-            char* env;
-            for (env = environ; *env != NULL; env++) {
-                printf("%sn", *env);
-            }
-            break;
-        }
-        case 'V': {
-            char* name = strtok(optarg, "=");
-            char* value = strtok(NULL, "=");
-            if (value == NULL) {
-                fprintf(stderr, "Invalid environment variable: %sn", optarg);
-                exit(1);
-            }
-            if (setenv(name, value, 1) == -1) {
-                perror("setenv");
-                exit(1);
-            }
-            break;
-        }
-        default:
-            print_usage(argv[0]);
+            case 'i':
+                uid_t real_uid = getuid();
+	    	uid_t effective_uid = geteuid();
+	    	gid_t real_gid = getgid();
+	    	gid_t effective_gid = getegid();
+	    	printf("Real UID: %d, Effective UID: %d\n", real_uid, effective_uid);
+	    	printf("Real GID: %d, Effective GID: %d\n", real_gid, effective_gid);
+                break;
+            case 's':
+                if (setpgid(0, 0) == -1) {
+                    perror("setpgid");
+                }
+                break;
+            case 'p':
+                pid_t pid = getpid();
+    		pid_t ppid = getppid();
+    		pid_t pgid = getpgid(0);
+    		printf("PID: %d, PPID: %d, PGID: %d\n", pid, ppid, pgid);
+                break;
+            case 'u':
+    		if (getrlimit(RLIMIT_FSIZE, &lim) == 0) printf("File size limit: %ld\n", lim.rlim_cur);
+    		else perror("getrlimit");
+                break;
+            case 'U':
+                
+    		lim.rlim_cur = atol(optarg);
+    		lim.rlim_max = RLIM_INFINITY;
+    		if (setrlimit(RLIMIT_FSIZE, &lim) == -1) perror("setrlimit");
+                break;
+            case 'c':
+	    	if (getrlimit(RLIMIT_CORE, &lim) == 0) printf("Core file size limit: %ld\n", lim.rlim_cur);
+	    	else perror("getrlimit");
+                break;
+            case 'C':
+	    	lim.rlim_cur = atol(optarg);
+	    	lim.rlim_max = RLIM_INFINITY;
+	    	if (setrlimit(RLIMIT_CORE, &lim) == -1) perror("setrlimit");
+                break;
+            case 'd':
+                char cwd[PATH_MAX];
+    		if (getcwd(cwd, sizeof(cwd)) != NULL) printf("Current working directory: %s\n", cwd);
+        	else perror("getcwd");
+                break;
+            case 'v':
+                extern char **environ;
+    		char **env = environ;
+    		while (*env) {
+        	    printf("%s\n", *env);
+        	    env++;
+    		}
+                break;
+            case 'V':
+                char *name = strtok(optarg, "=");
+    		char *value = strtok(NULL, "=");
+    		if (name && value) {
+        		if (setenv(name, value, 1) == -1) {
+            			perror("setenv");
+        		}
+    		} 
+    		else fprintf(stderr, "Invalid environment variable format\n");
+                break;
+            default:
+                fprintf(stderr, "Usage: %s [-i] [-s] [-p] [-u] [-U new_ulimit] [-c] [-C size] [-d] [-v] [-V name=value]\n", argv[0]);
+                exit(EXIT_FAILURE);
         }
     }
+
     return 0;
 }
+
