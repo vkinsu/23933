@@ -3,7 +3,9 @@
 #include <unistd.h>
 #include <string.h>
 #include <limits.h>
+#include <sys/types.h>
 #include <sys/resource.h>
+#include <errno.h>
 
 void print_ulimit();
 void set_ulimit(long new_limit);
@@ -11,7 +13,7 @@ void print_core_size();
 void set_core_size(long size);
 void print_working_directory();
 void print_env();
-void set_env(char* _name, char* value);
+void set_env(char* name, char* value);
 
 int main(int argc, char* argv[]) {
 
@@ -21,6 +23,8 @@ int main(int argc, char* argv[]) {
   }
 
   char cmd = 0;
+  char* name = NULL;
+  char* eq = NULL;
   while ((cmd = getopt(argc, argv, "ispucdvU:V:C:")) != -1) {
     switch (cmd) {
       case 'i':
@@ -38,13 +42,13 @@ int main(int argc, char* argv[]) {
         print_ulimit();
         break;
       case 'U':
-        set_ulimit(strtol(optarg, NULL, 32));
+        set_ulimit(strtol(optarg, NULL, 10));
         break;
       case 'c':
         print_core_size();
         break;
       case 'C':
-        set_core_size(strtol(optarg, NULL, 32));
+        set_core_size(strtol(optarg, NULL, 10));
         break;
       case 'd':
         print_working_directory();
@@ -53,8 +57,8 @@ int main(int argc, char* argv[]) {
         print_env();
         break;
       case 'V':
-        char* name = strdup(optarg);
-        char* eq = strchr(name, '=');
+        name = strdup(optarg);
+        eq = strchr(name, '=');
         if (eq) {
           *eq = '\0';
           set_env(name, eq + 1);
@@ -127,9 +131,9 @@ void print_env() {
   printf("\n");
 }
 
-void set_env(char* _name, char* value) {
-  if (setenv(_name, value, 1) == 0)
-    printf("New variable %s with value %s was setted.\n\n", _name, value);
+void set_env(char* name, char* value) {
+  if (setenv(name, value, 1) == 0)
+    printf("New variable %s with value %s was setted.\n\n", name, value);
   else
     perror("Error at variable setter.\n");
 }
