@@ -11,10 +11,18 @@ typedef struct Line {
 } Line;
 
 int fd;
+size_t len = 1;
 Line *lines;
 
 void bye(int signum) {
-    printf("\nbye\n");
+    lseek(fd, 0, SEEK_SET);
+    char buf[2048];
+    size_t bytes_read;
+    while ((bytes_read = read(fd, buf, sizeof(buf))) != 0) {
+        write(0, buf, bytes_read);
+    }
+
+    write(0, "\nbye\n", 5);
 
     close(fd);
     free(lines);
@@ -34,10 +42,12 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    size_t len = 1;
     size_t cap = 2;
 
     lines = malloc(cap * sizeof(Line));
+
+    lines[0].offset = 0;
+    lines[0].len = 0;
 
     char c;
     size_t offset = 0;
@@ -62,6 +72,11 @@ int main(int argc, char **argv) {
                 offset++;
             }
         }
+    }
+
+    for (size_t i = 0; i < len; i++) {
+        printf("line %lu: offset=%lu, len=%lu\n", i + 1, lines[i].offset,
+               lines[i].len);
     }
 
     signal(SIGALRM, bye);

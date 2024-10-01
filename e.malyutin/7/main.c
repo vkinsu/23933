@@ -17,6 +17,7 @@ int fd;
 size_t size;
 
 void bye(int signum) {
+    write(0, file, size);
     printf("\nbye\n");
 
     munmap(file, size);
@@ -48,6 +49,9 @@ int main(int argc, char **argv) {
 
     lines = malloc(cap * sizeof(Line));
 
+    lines[0].offset = 0;
+    lines[0].len = 0;
+
     char c;
     size_t offset = 0;
 
@@ -67,6 +71,11 @@ int main(int argc, char **argv) {
             lines[len - 1].len++;
             offset++;
         }
+    }
+
+    for (size_t i = 0; i < len; i++) {
+        printf("line %lu: offset=%lu, len=%lu\n", i + 1, lines[i].offset,
+               lines[i].len);
     }
 
     signal(SIGALRM, bye);

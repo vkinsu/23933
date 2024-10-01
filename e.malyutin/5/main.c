@@ -26,6 +26,9 @@ int main(int argc, char **argv) {
 
     Line *lines = malloc(cap * sizeof(Line));
 
+    lines[0].offset = 0;
+    lines[0].len = 0;
+
     char c;
     size_t offset = 0;
 
@@ -49,6 +52,11 @@ int main(int argc, char **argv) {
                 offset++;
             }
         }
+    }
+
+    for (size_t i = 0; i < len; i++) {
+        printf("line %lu: offset=%lu, len=%lu\n", i + 1, lines[i].offset,
+               lines[i].len);
     }
 
     while (1) {
