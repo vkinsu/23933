@@ -11,7 +11,7 @@ void print_core_size();
 void set_core_size(long size);
 void print_working_directory();
 void print_env();
-void set_env(char* name, char* value);
+void set_env(char* _name, char* value);
 
 int main(int argc, char* argv[]) {
 
@@ -62,7 +62,7 @@ int main(int argc, char* argv[]) {
         free(name);
         break;
       default:
-        fprintf(stderr, "Invalid option %s\n", cmd);
+        perror("Invalid option\n");
         break;
     }
   }
@@ -127,9 +127,9 @@ void print_env() {
   printf("\n");
 }
 
-void set_env(char* name, char* value) {
-  if (setenv(name, value, 1) == 0)
-    printf("New variable %s with value %s was setted.\n\n", name, value);
+void set_env(char* _name, char* value) {
+  if (setenv(_name, value, 1) == 0)
+    printf("New variable %s with value %s was setted.\n\n", _name, value);
   else
     perror("Error at variable setter.\n");
 }
