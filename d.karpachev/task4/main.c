@@ -42,14 +42,12 @@ int main() {
   }
   getchar();
 
-  if (my_lst->line != NULL) {
-    int i = 0;
-    printf("Strings:\n");
-    for (Node* node = my_lst; node != NULL; node = node->next) {
-      if (node->line != NULL) printf("%d) %s\n", ++i, node->line);
-    }
+  int i = 0;
+  printf("Strings:\n");
+  for (Node* node = my_lst; node != NULL; node = node->next) {
+    if (node->line != NULL) printf("%d) %s\n", ++i, node->line);
+    else printf("%d) \n", ++i);
   }
-  else printf("No strings here.\n");
 
   clear(my_lst);
   free(my_lst);
