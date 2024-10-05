@@ -12,6 +12,8 @@ void push(list* ls, char* str, int len){
     strcpy(ls->end->string, str);
     ls->end->next = (list_elem*)malloc(sizeof(list_elem));
     ls->end = ls->end->next;
+    ls->end->next = NULL;
+    ls->end->string = NULL;
 }
 
 void print_list(list* ls){
