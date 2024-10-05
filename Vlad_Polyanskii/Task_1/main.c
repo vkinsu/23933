@@ -64,7 +64,7 @@ int main(int argc, char** argv){
                 break;
             }
             case 'd':{
-                printf("%s\n", getenv("PWD"));
+                printf("curr dir: %s\n", getenv("PWD"));
                 break;
             }
             case 'v':{
