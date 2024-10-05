@@ -4,19 +4,23 @@
 #include <stdio.h>
 
 void try_open(char* fname){
-    FILE *f = fopen("test.txt", "r");
+    FILE *f = fopen("Passworded file.txt", "r");
     if(f == NULL){
         perror("\nCan't open the file\n");
     }
     else fclose(f);
 }
 
-int main(){
+void print_uid(){
     printf("euid: %u\tuid: %u\n", geteuid(), getuid());
+}
+
+int main(){
+    print_uid();
     try_open("test.txt");
 
     setuid(geteuid());
 
-    printf("euid: %u\tuid: %u\n", geteuid(), getuid());
+    print_uid();
     try_open("test.txt");
 }
