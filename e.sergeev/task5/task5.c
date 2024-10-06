@@ -9,11 +9,10 @@
 int main() {
     int fd;
     char filename[] = "text.txt";
-    scanf("%s", filename);
     off_t *offsets = NULL;
     size_t *lengths = NULL;
     char buffer[BUFFER_SIZE];
-    int line_count = 0, i;
+    int line_count = 0;
     ssize_t bytes_read;
 
     if ((fd = open(filename, O_RDONLY)) == -1) {
@@ -35,7 +34,7 @@ int main() {
     size_t current_length = 0;
 
     while ((bytes_read = read(fd, buffer, BUFFER_SIZE)) > 0) {
-        for (i = 0; i < bytes_read; ++i) {
+        for (int i = 0; i < bytes_read; i++) {
             if (buffer[i] == '\n') {
                 line_count++;
                 current_length++;
