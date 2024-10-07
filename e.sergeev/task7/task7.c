@@ -64,7 +64,7 @@ int main() {
     offsets[0] = 0;
     size_t current_length = 0;
 
-    for (off_t i = 0; i < file_size; ++i) {
+    for (off_t i = 0; i < file_size; i++) {
         if (mapped_file[i] == '\n') {
             line_count++;
             current_length++;
