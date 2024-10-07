@@ -92,7 +92,7 @@ int main() {
         scanf("%d", &line_number);
         alarm(0);
 
-        if (line_number == 0)break;
+        if (line_number == 0) break;
         else if (line_number > 0 && line_number <= line_count) {
             off_t start = offsets[line_number - 1];
             size_t len = lengths[line_number - 1];
