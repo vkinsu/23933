@@ -24,9 +24,13 @@ int is_number(char* inp) {
 
 void print_table(Table* my_table, int size) {
   for (int i = 0; i < size; i++) {
-    printf("%d) [offset: %d length: %d] %s\n", i + 1, my_table[i].offset,
-                                                      my_table[i].length,
-                                                      my_table[i].line);
+    if (table[i].line != NULL)
+      printf("%d) [offset: %d length: %d] %s\n", i + 1, table[i].offset,
+                                                        table[i].length,
+                                                        table[i].line);
+    else
+    printf("%d) [offset: %d length: %d]\n", i + 1, table[i].offset,
+                                                      table[i].length);
   }
 }
 
@@ -83,6 +87,9 @@ int main(int argc, char** argv) {
     char num[1024];
     int idx = 0;
     while (scanf("%s", num)) {
+      if (strcmp(num, "") == 0) {
+        printf("error\n");
+      }
       if (!is_number(num)) {
         perror("Wrong line number!\n");
         continue;
