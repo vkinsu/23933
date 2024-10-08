@@ -86,6 +86,7 @@ int main(int argc, char *argv[]) {
         if (((errno == ERANGE || (*endptr != '\0'))) || val < 0 || val > str_count) {
             perror("string number out of range\n");
             printf("\nEnter string number: ");
+            alarm(5);
             continue;
         }
 
