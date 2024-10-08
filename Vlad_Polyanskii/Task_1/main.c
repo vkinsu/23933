@@ -43,7 +43,10 @@ int main(int argc, char** argv){
                 struct rlimit fsize;
                 fsize.rlim_cur = (unsigned)new_rlim;
                 fsize.rlim_max = (unsigned)new_rlim;
-                printf("%d\n", setrlimit(RLIMIT_FSIZE, &fsize));
+                if (!setrlimit(RLIMIT_FSIZE, &fsize)){
+                    printf("New limit has set correctly\n");
+                }
+                else printf("Error: setrlimit has returned 1\n");
                 break;
             }
             case 'c':{
@@ -62,7 +65,10 @@ int main(int argc, char** argv){
                 struct rlimit cfsize;
                 cfsize.rlim_cur = (unsigned)new_rlim;
                 cfsize.rlim_max = (unsigned)new_rlim;
-                printf("%d\n", setrlimit(RLIMIT_DATA, &cfsize));
+                if (!setrlimit(RLIMIT_DATA, &cfsize)){
+                    printf("New limit has set correctly\n");
+                }
+                else printf("Error: setrlimit has returned 1\n");
                 break;
             }
             case 'd':{
