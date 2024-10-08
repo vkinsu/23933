@@ -66,10 +66,8 @@ int main() {
     }
 
     int line_number;
-    while (1) {
-        printf("Enter line number (0 to exit): ");
-        scanf("%d", &line_number);
-
+    printf("Enter line number (0 to exit): ");
+    while (scanf("%s", &line_str);) {
         if (line_number == 0) break;
         else if (line_number > 0 && line_number <= line_count) {
             lseek(fd, offsets[line_number - 1], SEEK_SET);
@@ -92,6 +90,7 @@ int main() {
             free(line);
         } 
         else printf("Invalid line number.\n");
+        printf("Enter line number (0 to exit): ");
     }
 
     close(fd);
