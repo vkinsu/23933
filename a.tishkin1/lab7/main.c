@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <signal.h>
+#include <errno.h>
 
 #include <fcntl.h>
 #include <sys/mman.h>
@@ -29,6 +30,8 @@ void Timeout() {
 }
 
 int main(int argc, char *argv[]) {
+    char buff[64];
+    long val;
     if (argc == 1) {
         perror("run without arguments");
         return 0;
@@ -77,21 +80,23 @@ int main(int argc, char *argv[]) {
     // set timeout
     signal(SIGALRM, Timeout);
 
-    // receive requests from user
-    unsigned int n = 0;
-
     printf("Enter string number: ");
     alarm(5);
-    while (scanf("%d", &n) != 0) {
-        if (n == 0) { break; }
-        if (n > str_count) {
+    while (scanf("%s", &buff) != 0) {
+        char *endptr;
+        errno = 0;
+        val = strtol(buff, &endptr, 10);
+
+        if (((errno == ERANGE || (*endptr != '\0'))) || val < 0 || val > str_count) {
             perror("string number out of range\n");
             printf("\nEnter string number: ");
             continue;
         }
 
-        for (int i = 0; i < table[n - 1].len; ++i) {
-            putc(mapped[table[n - 1].pos + i], stdout);
+        if (val == 0) { break; }
+
+        for (int i = 0; i < table[val - 1].len; ++i) {
+            putc(mapped[table[val - 1].pos + i], stdout);
         }
 
         printf("\nEnter string number: ");
