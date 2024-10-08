@@ -24,13 +24,13 @@ int is_number(char* inp) {
 
 void print_table(Table* my_table, int size) {
   for (int i = 0; i < size; i++) {
-    if (table[i].line != NULL)
-      printf("%d) [offset: %d length: %d] %s\n", i + 1, table[i].offset,
-                                                        table[i].length,
-                                                        table[i].line);
+    if (my_table[i].line != NULL)
+      printf("%d) [offset: %d length: %d] %s\n", i + 1, my_table[i].offset,
+                                                        my_table[i].length,
+                                                        my_table[i].line);
     else
-    printf("%d) [offset: %d length: %d]\n", i + 1, table[i].offset,
-                                                      table[i].length);
+    printf("%d) [offset: %d length: %d]\n", i + 1, my_table[i].offset,
+                                                      my_table[i].length);
   }
 }
 
