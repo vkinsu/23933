@@ -82,10 +82,12 @@ int main() {
     }
 
     int line_number;
+    char line_str[1024];
     while (1) {
         printf("Enter line number (0 to exit): ");
         alarm(5);
-        scanf("%d", &line_number);
+        scanf("%s", line_str);
+        line_number = atoi(line_str);
 		alarm(0);
         if (line_number == 0) break;
         else if (line_number > 0 && line_number <= line_count) {
