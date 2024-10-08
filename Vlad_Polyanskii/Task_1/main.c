@@ -39,6 +39,7 @@ int main(int argc, char** argv){
                     printf("Error: needs rlim_t aka unsigned int\n");
                     exit(1);
                 }
+                printf("new_limit: %d\n", new_rlim);
                 struct rlimit fsize;
                 fsize.rlim_cur = (unsigned)new_rlim;
                 fsize.rlim_max = (unsigned)new_rlim;
@@ -57,6 +58,7 @@ int main(int argc, char** argv){
                     printf("Error: needs rlim_t aka unsigned int\n");
                     exit(1);
                 }
+                printf("new_limit: %d\n", new_rlim);
                 struct rlimit cfsize;
                 cfsize.rlim_cur = (unsigned)new_rlim;
                 cfsize.rlim_max = (unsigned)new_rlim;
