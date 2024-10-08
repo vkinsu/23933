@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #include <stdbool.h>
 #include <signal.h>
+#include <ctype.h>
 
 typedef struct Table_t {
   char* line;
@@ -12,7 +13,42 @@ typedef struct Table_t {
   int length;
 } Table;
 
+Table* table = NULL;
+int line_count = 0;
+
+int is_number(char* inp) {
+  int res = 1;
+  for (int i = 0; i < strlen(inp); i++) {
+    if (!isdigit(inp[0])) {
+      res = 0;
+      break;
+    }
+  }
+  return res;
+}
+
+void print_table() {
+  for (int i = 0; i < line_count; i++) {
+    if (table[i].line != NULL)
+      printf("%d) [offset: %d length: %d] %s\n", i + 1, table[i].offset,
+                                                        table[i].length,
+                                                        table[i].line);
+    else
+    printf("%d) [offset: %d length: %d]\n", i + 1, table[i].offset,
+                                                      table[i].length);
+  }
+}
+
 void Alarm(int var) {
+  for (int i = 0; i < line_count; i++) {
+    if (table[i].line != NULL) {
+      printf("%s\n", table[i].line);
+      free(table[i].line);
+    }
+    else
+      printf("\n");
+  }
+  free(table);
   exit(0);
 }
 
@@ -38,10 +74,7 @@ int main(int argc, char** argv) {
     file_data[file_size] = '\0';
     fclose(file);
 
-    Table* table = NULL;
-
     int pos = 0;
-    int line_count = 0;
     for (int c = 0; c < file_size; c++) {
         if (file_data[c] == '\n') {
           if (table == NULL) {
@@ -78,7 +111,9 @@ int main(int argc, char** argv) {
         table[i].line[table[i].length] = '\0';
       }
     }
+    free(file_data);
 
+    print_table(line_count);
     char num[1024];
     int idx = 0;
     signal(SIGALRM, Alarm);
@@ -103,7 +138,6 @@ int main(int argc, char** argv) {
     }
 
     free(table);
-    free(file_data);
 
     return 0;
 }

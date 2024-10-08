@@ -3,12 +3,32 @@
 #include <unistd.h>
 #include <string.h>
 #include <fcntl.h>
+#include <ctype.h>
 
 typedef struct Table_t {
   char* line;
   int offset;
   int length;
 } Table;
+
+int is_number(char* inp) {
+  int res = 1;
+  for (int i = 0; i < strlen(inp); i++) {
+    if (!isdigit(inp[0])) {
+      res = 0;
+      break;
+    }
+  }
+  return res;
+}
+
+void print_table(Table* my_table, int size) {
+  for (int i = 0; i < size; i++) {
+    printf("%d) [offset: %d length: %d] %s\n", i + 1, my_table[i].offset,
+                                                      my_table[i].length,
+                                                      my_table[i].line);
+  }
+}
 
 int main(int argc, char** argv) {
     if (argc != 2) {
@@ -58,9 +78,15 @@ int main(int argc, char** argv) {
       }
     }
 
+    print_table(table, line_count);
+
     char num[1024];
     int idx = 0;
     while (scanf("%s", num)) {
+      if (!is_number(num)) {
+        perror("Wrong line number!\n");
+        continue;
+      }
       idx = atoi(num);
       if (idx == 0)
         break;

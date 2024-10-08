@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #include <signal.h>
 #include <stdbool.h>
+#include <ctype.h>
 
 typedef struct Table_t {
   char* line;
@@ -12,7 +13,42 @@ typedef struct Table_t {
   int length;
 } Table;
 
+Table* table = NULL;
+int line_count = 1;
+
+int is_number(char* inp) {
+  int res = 1;
+  for (int i = 0; i < strlen(inp); i++) {
+    if (!isdigit(inp[0])) {
+      res = 0;
+      break;
+    }
+  }
+  return res;
+}
+
+void print_table() {
+  for (int i = 0; i < line_count; i++) {
+    if (table[i].line != NULL)
+      printf("%d) [offset: %d length: %d] %s\n", i + 1, table[i].offset,
+                                                        table[i].length,
+                                                        table[i].line);
+    else
+    printf("%d) [offset: %d length: %d]\n", i + 1, table[i].offset,
+                                                      table[i].length);
+  }
+}
+
 void Alarm(int var) {
+  for (int i = 0; i < line_count; i++) {
+    if (table[i].line != NULL) {
+      printf("%s\n", table[i].line);
+      free(table[i].line);
+    }
+    else
+      printf("\n");
+  }
+  free(table);
   exit(0);
 }
 
@@ -29,11 +65,8 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    Table* table = NULL;
-
     char buf[2];
     int pos = 0;
-    int line_count = 1;
     table = (Table*)malloc(sizeof(Table));
     while (read(file, buf, 1) > 0) {
         if (buf[0] == '\n') {
@@ -58,6 +91,7 @@ int main(int argc, char** argv) {
       }
     }
 
+    print_table(line_count);
     char num[1024];
     int idx = 0;
     signal(SIGALRM, Alarm);
@@ -67,6 +101,10 @@ int main(int argc, char** argv) {
       if (flag) {
         alarm(0);
         flag = false;
+      }
+      if (!is_number(num)) {
+        perror("Wrong line number!\n");
+        continue;
       }
       idx = atoi(num);
       if (idx == 0)
