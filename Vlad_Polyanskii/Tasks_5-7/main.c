@@ -106,8 +106,8 @@ void print_str(table* t, int line){
 
 void print_file(int signum){
     char *buff = (char*)malloc(sizeof(char));
-    read(fd, buff, sizeof(char) * flen);
-    printf("FILE:\n%s\n", buff);
+    read(fd, buff, sizeof(char) * (flen - 1));
+    printf("\nFILE:\n%s\n", buff);
 }
 
 int main(int argc, char** argv){
