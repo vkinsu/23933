@@ -106,8 +106,9 @@ void print_str(table* t, int line){
 
 void print_file(int signum){
     char *buff = (char*)malloc(sizeof(char) * flen);
+    lseek(fd, 0, SEEK_SET);
     read(fd, buff, sizeof(char) * flen);
-    printf("\nFILE:\n%s\n", buff);
+    printf("\n\nFILE:\n%s\n", buff);
     exit(0);
 }
 
