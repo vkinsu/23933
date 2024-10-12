@@ -108,6 +108,7 @@ void print_file(int signum){
     char *buff = (char*)malloc(sizeof(char) * flen);
     read(fd, buff, sizeof(char) * flen);
     printf("\nFILE:\n%s\n", buff);
+    exit(0);
 }
 
 int main(int argc, char** argv){
