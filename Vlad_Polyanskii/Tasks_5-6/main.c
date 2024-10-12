@@ -19,7 +19,8 @@ typedef struct table{
 
 int fd;
 int flen = 0;
-table* strs_info = NULL; 
+table* strs_info = NULL;
+char* buff = NULL;
 
 void print_table(){
     printf("\nnumber indent_len str_len\n");
@@ -99,20 +100,22 @@ void print_str(int line){
     lseek(fd, offset * sizeof(char), SEEK_SET);
 
     int len = strs_info->matrix[line].str_len;
-    char *buff = (char*)malloc(sizeof(char) * (len - 1));
-    read(fd, buff, sizeof(char) * (len - 1));
+    read(fd, buff, sizeof(char) * len);
+    buff[len] = '\0';
     printf("%s\n", buff);
-    free(buff);
 }
 
-void print_file(int signum){
-    char *buff = (char*)malloc(sizeof(char) * flen);
-    lseek(fd, 0, SEEK_SET);
-    read(fd, buff, sizeof(char) * flen);
-    printf("\n\nFILE:\n%s\n", buff);
+void free_mem(){
     free(buff);
     free(strs_info->matrix);
     free(strs_info);
+}
+
+void print_file(int signum){
+    lseek(fd, 0, SEEK_SET);
+    read(fd, buff, sizeof(char) * flen);
+    printf("\n\nFILE:\n%s\n", buff);
+    free_mem();
     exit(0);
 }
 
@@ -130,6 +133,8 @@ int main(int argc, char** argv){
 
     get_strs_info(fd);
     print_table(strs_info);
+    buff = (char*)malloc(sizeof(char) * (flen + 1));
+    buff[flen] = '\0';
     
     printf("USAGE:\nEnter line numbers one at time\nPrint 0 to end\n\n");
     int line;
@@ -145,7 +150,6 @@ int main(int argc, char** argv){
         print_str(line);
     }
     
-    free(strs_info->matrix);
-    free(strs_info);
+    free_mem();
     return 0;
 }
