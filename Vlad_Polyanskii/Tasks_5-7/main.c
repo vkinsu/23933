@@ -15,7 +15,6 @@ typedef struct str_info{
 } str_info;
 
 typedef struct table{
-    int fd;
     int lines;
     str_info* matrix;
 } table;
@@ -27,7 +26,7 @@ void print_table(table* t){
                 t->matrix[i].indent_len,
                 t->matrix[i].str_len);
     }
-    printf("lines: %d, flen: %d\n\n", t->lines, t->flen);
+    printf("lines: %d, flen: %d\n\n", t->lines, flen);
 }
 
 void new_line(table* t){
@@ -39,7 +38,7 @@ void new_line(table* t){
 
 int count_indents(table* t){
     char sym;
-    while(read(t->fd, &sym, sizeof(char)) != 0){
+    while(read(fd, &sym, sizeof(char)) != 0){
         flen += 1;
         if(sym == ' '){
             t->matrix[t->lines - 1].indent_len += 1;
@@ -59,7 +58,7 @@ int count_indents(table* t){
 
 int count_len(table* t){
     char sym;
-    while(read(t->fd, &sym, sizeof(char)) != 0){
+    while(read(fd, &sym, sizeof(char)) != 0){
         flen += 1;
         t->matrix[t->lines - 1].str_len += 1;
         if(sym == '\n'){
@@ -129,7 +128,7 @@ int main(int argc, char** argv){
     int line;
     while(1){
         printf("in: ");
-        signal(SIGALARM, print_file)
+        signal(SIGALRM, print_file);
         alarm(5);
         scanf("%d", &line);
         if(line == 0 || line < 0  || line > strs_info->lines){
