@@ -7,9 +7,6 @@
 #include <errno.h>
 #include <signal.h>
 
-int fd;
-int flen = 0;
-
 typedef struct str_info{
     int str_len;
     int indent_len;
@@ -20,32 +17,36 @@ typedef struct table{
     str_info* matrix;
 } table;
 
-void print_table(table* t){
+int fd;
+int flen = 0;
+table* strs_info = NULL; 
+
+void print_table(){
     printf("\nnumber indent_len str_len\n");
-    for(int i = 0; i < t->lines; i++){
+    for(int i = 0; i < strs_info->lines; i++){
         printf("%d\t%d\t%d\n", i + 1, 
-                t->matrix[i].indent_len,
-                t->matrix[i].str_len);
+                strs_info->matrix[i].indent_len,
+                strs_info->matrix[i].str_len);
     }
-    printf("lines: %d, flen: %d\n\n", t->lines, flen);
+    printf("lines: %d, flen: %d\n\n", strs_info->lines, flen);
 }
 
-void new_line(table* t){
-    t->lines += 1;
-    t->matrix = (str_info*)realloc(t->matrix, sizeof(str_info) * t->lines);
-    t->matrix[t->lines - 1].indent_len = 0;
-    t->matrix[t->lines - 1].str_len = 0;
+void new_line(){
+    strs_info->lines += 1;
+    strs_info->matrix = (str_info*)realloc(strs_info->matrix, sizeof(str_info) * strs_info->lines);
+    strs_info->matrix[strs_info->lines - 1].indent_len = 0;
+    strs_info->matrix[strs_info->lines - 1].str_len = 0;
 }
 
-int count_indents(table* t){
+int count_indents(){
     char sym;
     while(read(fd, &sym, sizeof(char)) != 0){
         flen += 1;
         if(sym == ' '){
-            t->matrix[t->lines - 1].indent_len += 1;
+            strs_info->matrix[strs_info->lines - 1].indent_len += 1;
         }
         else{
-            t->matrix[t->lines - 1].str_len += 1;
+            strs_info->matrix[strs_info->lines - 1].str_len += 1;
             if(sym == '\0'){
                 return 0;
             }
@@ -57,11 +58,11 @@ int count_indents(table* t){
     }
 }
 
-int count_len(table* t){
+int count_len(){
     char sym;
     while(read(fd, &sym, sizeof(char)) != 0){
         flen += 1;
-        t->matrix[t->lines - 1].str_len += 1;
+        strs_info->matrix[strs_info->lines - 1].str_len += 1;
         if(sym == '\n'){
             return 1;
         }
@@ -71,37 +72,37 @@ int count_len(table* t){
     }
 }
 
-table* get_strs_info(int fd){
-    table* t = (table*)malloc(sizeof(table));
-    t->lines = 0, t->matrix = NULL; 
-    new_line(t);
+void get_strs_info(int fd){
+    strs_info = (table*)malloc(sizeof(table));
+    strs_info->lines = 0, strs_info->matrix = NULL;
+    new_line();
     while (1){
-        if(count_indents(t) == 0){
+        if(count_indents() == 0){
             break;
         }
-        if(count_len(t) == 0){
+        if(count_len() == 0){
             break;
         }
-        new_line(t); 
+        new_line(); 
     }
-    return t;
 }
 
-void print_str(table* t, int line){
+void print_str(int line){
     line -= 1;
     off_t offset = 0;
     for(int i = 0; i < line; i++){
-        offset += t->matrix[i].indent_len;
-        offset += t->matrix[i].str_len;
+        offset += strs_info->matrix[i].indent_len;
+        offset += strs_info->matrix[i].str_len;
     }
-    offset += t->matrix[line].indent_len;
+    offset += strs_info->matrix[line].indent_len;
 
     lseek(fd, offset * sizeof(char), SEEK_SET);
 
-    char *buff = (char*)malloc(sizeof(char));
-    int len = t->matrix[line].str_len;
+    int len = strs_info->matrix[line].str_len;
+    char *buff = (char*)malloc(sizeof(char) * (len - 1));
     read(fd, buff, sizeof(char) * (len - 1));
     printf("%s\n", buff);
+    free(buff);
 }
 
 void print_file(int signum){
@@ -109,6 +110,9 @@ void print_file(int signum){
     lseek(fd, 0, SEEK_SET);
     read(fd, buff, sizeof(char) * flen);
     printf("\n\nFILE:\n%s\n", buff);
+    free(buff);
+    free(strs_info->matrix);
+    free(strs_info);
     exit(0);
 }
 
@@ -124,7 +128,7 @@ int main(int argc, char** argv){
         return 1;
     }
 
-    table* strs_info = get_strs_info(fd);
+    get_strs_info(fd);
     print_table(strs_info);
     
     printf("USAGE:\nEnter line numbers one at time\nPrint 0 to end\n\n");
@@ -138,7 +142,7 @@ int main(int argc, char** argv){
             return 0;
         }
         printf("out: ");
-        print_str(strs_info, line);
+        print_str(line);
     }
     
     free(strs_info->matrix);
