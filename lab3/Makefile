@@ -1,2 +1,2 @@
 all:
-	gcc lab3.c -o lab3 -Wall -Wextra
+	gcc lab3.c -o lab3 -Wall -Wextras
