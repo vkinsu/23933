@@ -47,7 +47,7 @@ int count_indents(int* i){
         flen += 1;
         if(*i == buff_size){
             offset += buff_size;
-            mmap(buff, sizeof(char) * buff_size, PROT_READ, MAP_PRIVATE, fd, sizeof(char) * offset);
+            mmap(buff, sizeof(char) * buff_size, PROT_READ, MAP_TEXT, fd, sizeof(char) * offset);
             *i = 0;
         }
         if(buff[*i] == ' '){
@@ -70,7 +70,7 @@ int count_len(int* i){
         strs_info->matrix[strs_info->lines - 1].str_len += 1;
         if(*i == buff_size){
             offset += buff_size;
-            mmap(buff, sizeof(char) * buff_size, PROT_READ, MAP_PRIVATE, fd, sizeof(char) * offset);
+            mmap(buff, sizeof(char) * buff_size, PROT_READ, MAP_TEXT, fd, sizeof(char) * offset);
             *i = 0;
         }
         if(buff[*i] == '\n'){
@@ -87,7 +87,7 @@ void get_strs_info(int fd){
     strs_info = (table*)malloc(sizeof(table));
     strs_info->lines = 0, strs_info->matrix = NULL;
     new_line();
-    mmap(buff, sizeof(char) * buff_size, PROT_READ, MAP_PRIVATE, fd, sizeof(char) * offset);
+    mmap(buff, sizeof(char) * buff_size, PROT_READ, MAP_TEXT, fd, sizeof(char) * offset);
     int i = 0;
     while (buff[i] != '\0'){
         if(count_indents(&i) == 0){

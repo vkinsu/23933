@@ -41,8 +41,7 @@ void new_line(){
 
 int count_indents(){
     char sym;
-    while(1){
-        read(fd, &sym, sizeof(char));
+    while(read(fd, &sym, sizeof(char)) != 0){
         flen += 1;
         if(sym == ' '){
             strs_info->matrix[strs_info->lines - 1].indent_len += 1;
@@ -55,12 +54,12 @@ int count_indents(){
             else return 1;
         }
     }
+    return 0;
 }
 
 int count_len(){
     char sym;
-    while(1){
-        read(fd, &sym, sizeof(char));
+    while(read(fd, &sym, sizeof(char)) != 0){
         flen += 1;
         strs_info->matrix[strs_info->lines - 1].str_len += 1;
         if(sym == '\n'){
@@ -70,6 +69,7 @@ int count_len(){
             return 0;
         }
     }
+    return 0;
 }
 
 void get_strs_info(int fd){
@@ -139,8 +139,8 @@ int main(int argc, char** argv){
     int line;
     while(1){
         printf("in: ");
-        signal(SIGALRM, print_file);
-        alarm(5);
+        //signal(SIGALRM, print_file);
+        //alarm(5);
         scanf("%d", &line);
         if(line == 0 || line < 0  || line > strs_info->lines){
             return 0;
