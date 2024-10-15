@@ -32,7 +32,7 @@ int main() {
 
     offsets[0] = 0;
     size_t current_length = 0;
-
+	printf("lengths	offsets\n");
     while ((bytes_read = read(fd, buffer, BUFFER_SIZE)) > 0) {
         for (int i = 0; i < bytes_read; i++) {
             if (buffer[i] == '\n') {
@@ -50,6 +50,7 @@ int main() {
 
                 lengths[line_count - 1] = current_length;
                 offsets[line_count] = current_offset + i + 1;
+                printf("%d %d\n", lengths[line_count - 1], offsets[line_count]);
                 current_length = 0;
             } 
             else current_length++;
@@ -64,10 +65,13 @@ int main() {
         free(lengths);
         return 1;
     }
-
+	
     int line_number;
-    printf("Enter line number (0 to exit): ");
-    while (scanf("%s", &line_str);) {
+    char line_str[1024];
+    while (1) {
+    	printf("Enter line number (0 to exit): ");
+        scanf("%s", &line_str);
+        line_number = atoi(line_str);
         if (line_number == 0) break;
         else if (line_number > 0 && line_number <= line_count) {
             lseek(fd, offsets[line_number - 1], SEEK_SET);
@@ -90,7 +94,7 @@ int main() {
             free(line);
         } 
         else printf("Invalid line number.\n");
-        printf("Enter line number (0 to exit): ");
+        
     }
 
     close(fd);
