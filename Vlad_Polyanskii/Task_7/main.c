@@ -21,8 +21,8 @@ typedef struct table{
 int fd;
 int flen = 0;
 table* strs_info = NULL;
-char buff[1000];
-int buff_size = 1000;
+char* pa;
+int map_size = 0;
 off_t offset = 0;
 
 void print_table(){
@@ -42,21 +42,30 @@ void new_line(){
     strs_info->matrix[strs_info->lines - 1].str_len = 0;
 }
 
+void remap(int new_offset, int new_map_size){
+    printf("%d\n", munmap(pa, map_size));
+    map_size = new_map_size;
+    offset = new_offset;
+    pa = mmap(NULL, sizeof(char) * map_size, PROT_READ, MAP_SHARED, fd, sizeof(char) * offset);
+    if(pa == MAP_FAILED){
+        printf("MAP_FAILED\n");
+        exit(1);
+    }
+}
+
 int count_indents(int* i){
     while(1){
         flen += 1;
-        if(*i == buff_size){
-            offset += buff_size;
-            mmap(buff, sizeof(char) * buff_size, PROT_READ, MAP_TEXT, fd, sizeof(char) * offset);
-            *i = 0;
+        if(*i == map_size){
+            remap(map_size, map_size);
         }
-        if(buff[*i] == ' '){
+        if(pa[*i] == ' '){
             strs_info->matrix[strs_info->lines - 1].indent_len += 1;
-            *i++;
+            *i += 1;
         }
         else{
             strs_info->matrix[strs_info->lines - 1].str_len += 1;
-            if(buff[*i] == '\0'){
+            if(pa[*i] == '\0'){
                 return 0;
             }
             else return 1;
@@ -68,18 +77,16 @@ int count_len(int* i){
     while(1){
         flen += 1;
         strs_info->matrix[strs_info->lines - 1].str_len += 1;
-        if(*i == buff_size){
-            offset += buff_size;
-            mmap(buff, sizeof(char) * buff_size, PROT_READ, MAP_TEXT, fd, sizeof(char) * offset);
-            *i = 0;
+        if(*i == map_size){
+            remap(map_size, map_size);
         }
-        if(buff[*i] == '\n'){
+        if(pa[*i] == '\n'){
             return 1;
         }
-        else if(buff[*i] == '\0'){
+        else if(pa[*i] == '\0'){
             return 0;
         }
-        *i++;
+        *i += 1;
     }
 }
 
@@ -87,9 +94,16 @@ void get_strs_info(int fd){
     strs_info = (table*)malloc(sizeof(table));
     strs_info->lines = 0, strs_info->matrix = NULL;
     new_line();
-    mmap(buff, sizeof(char) * buff_size, PROT_READ, MAP_TEXT, fd, sizeof(char) * offset);
+    map_size = 15;
+    offset = 0;
+    pa = mmap(NULL, sizeof(char) * map_size, PROT_READ, MAP_SHARED, fd, offset);
+    if(pa == MAP_FAILED){
+        printf("MAP_FAILED\n");
+        exit(1);
+    }
+
     int i = 0;
-    while (buff[i] != '\0'){
+    while (1){
         if(count_indents(&i) == 0){
             break;
         }
@@ -105,26 +119,28 @@ void get_strs_info(int fd){
 
 void print_str(int line){
     line -= 1;
-    offset = 0;
+    int beg = 0;
     for(int i = 0; i < line; i++){
-        offset += strs_info->matrix[i].indent_len;
-        offset += strs_info->matrix[i].str_len;
+        beg += strs_info->matrix[i].indent_len;
+        beg += strs_info->matrix[i].str_len;
     }
-    offset += strs_info->matrix[line].indent_len;
+    beg += strs_info->matrix[line].indent_len;
 
-    int len = strs_info->matrix[line].str_len;
-    mmap(buff, sizeof(char) * len, PROT_READ, MAP_SHARED, fd, sizeof(char) * offset);
-    printf("%s\n", buff);
+    int end = strs_info->matrix[line].str_len + beg;
+    for(int i = beg; i < end; i++){
+        printf("%c", pa[i]);
+    }
+    printf("\n");
 }
 
 void free_mem(){
     free(strs_info->matrix);
     free(strs_info);
+    munmap(pa, flen);
 }
 
 void print_file(int signum){
-    mmap(buff, sizeof(char) * flen, PROT_READ, MAP_PRIVATE, fd, 0);
-    printf("\n\nFILE:\n%s\n", buff);
+    printf("\n\nFILE:\n%s\n", pa);
     free_mem();
     exit(0);
 }
@@ -142,21 +158,26 @@ int main(int argc, char** argv){
     }
 
     get_strs_info(fd);
+    if(strs_info->matrix == NULL){
+        printf("EMPTY_TABLE\n");
+        exit(1);
+    }
     print_table(strs_info);
+    remap(0, flen);
     
-    /*printf("USAGE:\nEnter line numbers one at time\nPrint 0 to end\n\n");
+    printf("USAGE:\nEnter line numbers one at time\nPrint 0 to end\n\n");
     int line;
     while(1){
         printf("in: ");
-        //signal(SIGALRM, print_file);
-        //alarm(5);
+        signal(SIGALRM, print_file);
+        alarm(5);
         scanf("%d", &line);
         if(line == 0 || line < 0  || line > strs_info->lines){
             return 0;
         }
         printf("out: ");
         print_str(line);
-    }*/
+    }
     
     free_mem();
     return 0;

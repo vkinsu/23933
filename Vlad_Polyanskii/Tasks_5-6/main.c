@@ -139,8 +139,8 @@ int main(int argc, char** argv){
     int line;
     while(1){
         printf("in: ");
-        //signal(SIGALRM, print_file);
-        //alarm(5);
+        signal(SIGALRM, print_file);
+        alarm(5);
         scanf("%d", &line);
         if(line == 0 || line < 0  || line > strs_info->lines){
             return 0;
