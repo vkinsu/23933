@@ -48,7 +48,7 @@ int main() {
 
     offsets[0] = 0;
     size_t current_length = 0;
-
+	printf("lengths	offsets\n");
     while ((bytes_read = read(fd, buffer, BUFFER_SIZE)) > 0) {
         for (int i = 0; i < bytes_read; i++) {
             if (buffer[i] == '\n') {
@@ -66,6 +66,7 @@ int main() {
 
                 lengths[line_count - 1] = current_length;
                 offsets[line_count] = current_offset + i + 1;
+                printf("%d %d\n", lengths[line_count - 1], offsets[line_count]);
                 current_length = 0;
             } 
             else current_length++;
