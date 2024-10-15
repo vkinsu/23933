@@ -22,8 +22,6 @@ int fd;
 int flen = 0;
 table* strs_info = NULL;
 char* pa;
-int map_size = 0;
-off_t offset = 0;
 
 void print_table(){
     printf("\nnumber indent_len str_len\n");
@@ -42,23 +40,9 @@ void new_line(){
     strs_info->matrix[strs_info->lines - 1].str_len = 0;
 }
 
-void remap(int new_offset, int new_map_size){
-    printf("%d\n", munmap(pa, map_size));
-    map_size = new_map_size;
-    offset = new_offset;
-    pa = mmap(NULL, sizeof(char) * map_size, PROT_READ, MAP_SHARED, fd, sizeof(char) * offset);
-    if(pa == MAP_FAILED){
-        printf("MAP_FAILED\n");
-        exit(1);
-    }
-}
-
 int count_indents(int* i){
     while(1){
         flen += 1;
-        if(*i == map_size){
-            remap(map_size, map_size);
-        }
         if(pa[*i] == ' '){
             strs_info->matrix[strs_info->lines - 1].indent_len += 1;
             *i += 1;
@@ -77,9 +61,6 @@ int count_len(int* i){
     while(1){
         flen += 1;
         strs_info->matrix[strs_info->lines - 1].str_len += 1;
-        if(*i == map_size){
-            remap(map_size, map_size);
-        }
         if(pa[*i] == '\n'){
             return 1;
         }
@@ -94,11 +75,10 @@ void get_strs_info(int fd){
     strs_info = (table*)malloc(sizeof(table));
     strs_info->lines = 0, strs_info->matrix = NULL;
     new_line();
-    map_size = 15;
-    offset = 0;
-    pa = mmap(NULL, sizeof(char) * map_size, PROT_READ, MAP_SHARED, fd, offset);
+    pa = mmap(NULL, sizeof(char), PROT_READ, MAP_SHARED, fd, 0);
     if(pa == MAP_FAILED){
-        printf("MAP_FAILED\n");
+        perror("MAP_FAILED:");
+        printf("\n");
         exit(1);
     }
 
@@ -158,12 +138,7 @@ int main(int argc, char** argv){
     }
 
     get_strs_info(fd);
-    if(strs_info->matrix == NULL){
-        printf("EMPTY_TABLE\n");
-        exit(1);
-    }
     print_table(strs_info);
-    remap(0, flen);
     
     printf("USAGE:\nEnter line numbers one at time\nPrint 0 to end\n\n");
     int line;
