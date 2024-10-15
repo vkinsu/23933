@@ -41,7 +41,8 @@ void new_line(){
 
 int count_indents(){
     char sym;
-    while(read(fd, &sym, sizeof(char)) != 0){
+    while(1){
+        read(fd, &sym, sizeof(char));
         flen += 1;
         if(sym == ' '){
             strs_info->matrix[strs_info->lines - 1].indent_len += 1;
@@ -51,17 +52,15 @@ int count_indents(){
             if(sym == '\0'){
                 return 0;
             }
-            if(sym == '\n'){
-                return 1;
-            }
-            break;
+            else return 1;
         }
     }
 }
 
 int count_len(){
     char sym;
-    while(read(fd, &sym, sizeof(char)) != 0){
+    while(1){
+        read(fd, &sym, sizeof(char));
         flen += 1;
         strs_info->matrix[strs_info->lines - 1].str_len += 1;
         if(sym == '\n'){

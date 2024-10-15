@@ -4,6 +4,7 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/mman.h>
 #include <errno.h>
 #include <signal.h>
 
@@ -20,7 +21,8 @@ typedef struct table{
 int fd;
 int flen = 0;
 table* strs_info = NULL;
-char* buff = NULL;
+char buff[1000];
+int buff_size = 1000;
 off_t offset = 0;
 
 void print_table(){
@@ -40,37 +42,44 @@ void new_line(){
     strs_info->matrix[strs_info->lines - 1].str_len = 0;
 }
 
-int count_indents(){
-    char sym;
-    while(mmap(&sym, sizeof(char), PROT_READ, MAP_PRIVATE, fd, sizeof(char) * offset++) != -1){
+int count_indents(int* i){
+    while(1){
         flen += 1;
-        if(sym == ' '){
+        if(*i == buff_size){
+            offset += buff_size;
+            mmap(buff, sizeof(char) * buff_size, PROT_READ, MAP_PRIVATE, fd, sizeof(char) * offset);
+            *i = 0;
+        }
+        if(buff[*i] == ' '){
             strs_info->matrix[strs_info->lines - 1].indent_len += 1;
+            *i++;
         }
         else{
             strs_info->matrix[strs_info->lines - 1].str_len += 1;
-            if(sym == '\0'){
+            if(buff[*i] == '\0'){
                 return 0;
             }
-            if(sym == '\n'){
-                return 1;
-            }
-            break;
+            else return 1;
         }
     }
 }
 
-int count_len(){
-    char sym;
-    while(mmap(&sym, sizeof(char), PROT_READ, MAP_PRIVATE, fd, sizeof(char) * offset++) != -1){
+int count_len(int* i){
+    while(1){
         flen += 1;
         strs_info->matrix[strs_info->lines - 1].str_len += 1;
-        if(sym == '\n'){
+        if(*i == buff_size){
+            offset += buff_size;
+            mmap(buff, sizeof(char) * buff_size, PROT_READ, MAP_PRIVATE, fd, sizeof(char) * offset);
+            *i = 0;
+        }
+        if(buff[*i] == '\n'){
             return 1;
         }
-        if(sym == '\0'){
+        else if(buff[*i] == '\0'){
             return 0;
         }
+        *i++;
     }
 }
 
@@ -78,13 +87,18 @@ void get_strs_info(int fd){
     strs_info = (table*)malloc(sizeof(table));
     strs_info->lines = 0, strs_info->matrix = NULL;
     new_line();
-    while (1){
-        if(count_indents() == 0){
+    mmap(buff, sizeof(char) * buff_size, PROT_READ, MAP_PRIVATE, fd, sizeof(char) * offset);
+    int i = 0;
+    while (buff[i] != '\0'){
+        if(count_indents(&i) == 0){
             break;
         }
-        if(count_len() == 0){
+        else i++;
+
+        if(count_len(&i) == 0){
             break;
         }
+        else i++;
         new_line(); 
     }
 }
@@ -99,13 +113,11 @@ void print_str(int line){
     offset += strs_info->matrix[line].indent_len;
 
     int len = strs_info->matrix[line].str_len;
-    mmap(buff, sizeof(char) * len, PROT_READ, MAP_PRIVATE, fd, sizeof(char) * offset);
-    buff[len] = '\0';
+    mmap(buff, sizeof(char) * len, PROT_READ, MAP_SHARED, fd, sizeof(char) * offset);
     printf("%s\n", buff);
 }
 
 void free_mem(){
-    free(buff);
     free(strs_info->matrix);
     free(strs_info);
 }
@@ -131,22 +143,20 @@ int main(int argc, char** argv){
 
     get_strs_info(fd);
     print_table(strs_info);
-    buff = (char*)malloc(sizeof(char) * (flen + 1));
-    buff[flen] = '\0';
     
-    printf("USAGE:\nEnter line numbers one at time\nPrint 0 to end\n\n");
+    /*printf("USAGE:\nEnter line numbers one at time\nPrint 0 to end\n\n");
     int line;
     while(1){
         printf("in: ");
-        signal(SIGALRM, print_file);
-        alarm(5);
+        //signal(SIGALRM, print_file);
+        //alarm(5);
         scanf("%d", &line);
         if(line == 0 || line < 0  || line > strs_info->lines){
             return 0;
         }
         printf("out: ");
         print_str(line);
-    }
+    }*/
     
     free_mem();
     return 0;
