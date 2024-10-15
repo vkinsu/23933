@@ -63,7 +63,7 @@ int main() {
 
     offsets[0] = 0;
     size_t current_length = 0;
-
+	printf("lengths	offsets\n");
     for (off_t i = 0; i < file_size; i++) {
         if (mapped_file[i] == '\n') {
             line_count++;
@@ -81,15 +81,18 @@ int main() {
 
             lengths[line_count - 1] = current_length;
             offsets[line_count] = i + 1;
+            printf("%d %d\n", lengths[line_count - 1], offsets[line_count]);
             current_length = 0;
         }
         else current_length++;
     }
     int line_number;
+    char line_str[1024];
     while (1) {
         printf("Enter line number (0 to exit): ");
         alarm(5);
-        scanf("%d", &line_number);
+        scanf("%s", &line_str);
+        line_number = atoi(line_str);
         alarm(0);
 
         if (line_number == 0)break;
