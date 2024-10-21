@@ -2,6 +2,10 @@
     "files.associations": {
         "string.h": "c",
         "stdlib.h": "c",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "initializer_list": "c",
+        "utility": "c",
+        "xstring": "c",
+        "xutility": "c"
     }
 }
