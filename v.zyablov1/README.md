@@ -5,13 +5,16 @@ So you should grab it from anyone.
 And another one. Just copy it.  
 
 # Check sugar
-For testing you can use those scripts:
-- `check_task_human.sh`
-- `execute_task_ai.sh`
-Note, those scripts work only if some personality write corresponding file.  
-And you can use "--no-clean" option to disable removing executable files
+You can execute `scripts/delete_executables.sh` to clear repository from made programs.   
+Note, scripts (in `scripts`):   
+- `check_task_human.sh`   
+- `execute_task_ai.sh`   
+have ontion "--no-clean".   
+   
 
 # Credits
-[g.kuznetsov2](https://github.com/Zea-Zee/NSU-OS-22932/tree/main/g.kuznetsov2): 4, 9, 10, ?11,16,17,18,21,25,30,31,32    
-[Chat GPT](https://chatgpt.com): 2
-[d.karpachev](https://github.com/vkinsu/23933/tree/main/d.karpachev): 1, 3, 5, 6, 7
+[Mikhail_Vays](https://github.com/vkinsu/23930/tree/main/Mikhail_Vays): 9,10   
+[kireev](https://github.com/vkinsu/23930/tree/main/kireev): 8   
+[Chat GPT](https://chatgpt.com): 2   
+[a.tishkin1](https://github.com/vkinsu/23933/tree/main/a.tishkin1): 1,3,4,5,6,7   
+(They didn't allow)😎
