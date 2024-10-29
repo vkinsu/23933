@@ -12,5 +12,6 @@ Note, those scripts work only if some personality write corresponding file.
 And you can use "--no-clean" option to disable removing executable files
 
 # Credits
-[g.kuznetsov2](https://github.com/Zea-Zee/NSU-OS-22932/tree/main/g.kuznetsov2): 1,3,4,5,6,7,9,10,11,16,17,18,21,25,30,31,32
-[Chat GPT](https://chatgpt.com): 2, 3, 4, 5, 6, 7, 8, 9
+[g.kuznetsov2](https://github.com/Zea-Zee/NSU-OS-22932/tree/main/g.kuznetsov2): 4, 9, 10, ?11,16,17,18,21,25,30,31,32    
+[Chat GPT](https://chatgpt.com): 2
+[d.karpachev](https://github.com/vkinsu/23933/tree/main/d.karpachev): 1, 3, 5, 6, 7

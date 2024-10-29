@@ -1,1 +1,1 @@
-"path to exec from main.c" cat a.txt b.txt //->aaabbbbbb
+ tacfjkjfkjefkjcfo exec from main.c" cat a.txt b.txt //->aaabbbbbb

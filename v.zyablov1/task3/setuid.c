@@ -1,44 +1,35 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <sys/types.h>
-#include <pwd.h>
 
-int main() {
-    // Переменные для хранения реального и эффективного UID
-    uid_t real_uid = getuid();
-    uid_t effective_uid = geteuid();
+int main(int argc, char* argv[]) {
 
-    // Печать реального и эффективного идентификаторов пользователя
-    printf("Реальный UID: %d, Эффективный UID: %d\n", real_uid, effective_uid);
+  if (argc != 2) {
+    perror("Wrong arguments count.\n");
+    return -1;
+  }
 
-    // Попытка открыть файл "file"
-    FILE *file = fopen("file", "r");
-    if (file == NULL) {
-        perror("Ошибка при открытии файла");
-    } else {
-        printf("Файл открыт успешно!\n");
-        fclose(file);
-    }
+  printf("Real UID: %d\nEffective UID: %d\n", getuid(), geteuid());
 
-    // Сделать так, чтобы реальный и эффективный UID совпадали
-    if (setuid(real_uid) == -1) {
-        perror("Ошибка при установке идентификатора пользователя с помощью setuid");
-        exit(EXIT_FAILURE);
-    }
+  FILE* file = fopen(argv[1], "r");
+  if (file) {
+    fclose(file);
+  }
+  else {
+    perror(argv[1]);
+  }
 
-    // Повторная печать реального и эффективного идентификаторов пользователя после setuid
-    printf("После setuid(): Реальный UID: %d, Эффективный UID: %d\n", getuid(), geteuid());
+  setuid(geteuid());
+  printf("Real UID: %d\nEffective UID: %d\n", getuid(), geteuid());
 
-    // Повторная попытка открыть файл
-    file = fopen("file", "r");
-    if (file == NULL) {
-        perror("Ошибка при повторном открытии файла");
-    } else {
-        printf("Файл повторно открыт успешно!\n");
-        fclose(file);
-    }
+  file = fopen(argv[1], "r");
+  if (file) {
+    fclose(file);
+  }
+  else {
+    perror(argv[1]);
+    return -1;
+  }
 
-    return 0;
+  return 0;
 }
-

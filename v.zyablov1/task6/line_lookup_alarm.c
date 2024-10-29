@@ -1,134 +1,131 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <fcntl.h>
 #include <unistd.h>
+#include <string.h>
+#include <fcntl.h>
 #include <signal.h>
+#include <stdbool.h>
+#include <ctype.h>
 
-#define MAX_LINES 100
-#define MAX_LINE_LENGTH 256
+typedef struct Table_t {
+  char* line;
+  int offset;
+  int length;
+} Table;
 
-typedef struct {
-    off_t offset;   // Отступ в файле
-    size_t length;  // Длина строки
-} LineInfo;
+Table* table = NULL;
+int line_count = 1;
 
-// Флаг для указания на истечение времени
-volatile sig_atomic_t time_expired = 0;
-
-void handle_alarm(int sig) {
-    time_expired = 1; // Устанавливаем флаг истечения времени
+int is_number(char* inp) {
+  int res = 1;
+  for (int i = 0; i < strlen(inp); i++) {
+    if (!isdigit(inp[0])) {
+      res = 0;
+      break;
+    }
+  }
+  return res;
 }
 
-void build_line_table(int fd, LineInfo *line_table, size_t *line_count) {
-    char buffer[MAX_LINE_LENGTH];
-    off_t offset = 0;
-    ssize_t bytes_read;
-    *line_count = 0;
+void print_table() {
+  for (int i = 0; i < line_count; i++) {
+    if (table[i].line != NULL)
+      printf("%d) [offset: %d length: %d] %s\n", i + 1, table[i].offset,
+                                                        table[i].length,
+                                                        table[i].line);
+    else
+    printf("%d) [offset: %d length: %d]\n", i + 1, table[i].offset,
+                                                      table[i].length);
+  }
+}
 
-    while ((bytes_read = read(fd, buffer, sizeof(buffer))) > 0) {
-        for (ssize_t i = 0; i < bytes_read; i++) {
-            if (buffer[i] == '\n') {
-                line_table[*line_count].offset = offset;
-                line_table[*line_count].length = i + 1; // включая '\n'
-                (*line_count)++;
-                offset += i + 1;
+void Alarm(int var) {
+  for (int i = 0; i < line_count; i++) {
+    if (table[i].line != NULL) {
+      printf("%s\n", table[i].line);
+      free(table[i].line);
+    }
+    else
+      printf("\n");
+  }
+  free(table);
+  exit(0);
+}
 
-                // Проверка на максимальное количество строк
-                if (*line_count >= MAX_LINES) {
-                    return;
-                }
-            }
+int main(int argc, char** argv) {
+    if (argc != 2) {
+        perror("Wrong arguments count!\n");
+        return 1;
+    }
+
+    char* name = argv[1];
+    int file = open(name, O_RDONLY);
+    if (file == -1) {
+        perror("Error with opening file.\n");
+        return 1;
+    }
+
+    char buf[2];
+    int pos = 0;
+    table = (Table*)malloc(sizeof(Table));
+    while (read(file, buf, 1) > 0) {
+        if (buf[0] == '\n') {
+          table = (Table*)realloc(table, (++line_count) * sizeof(Table));
+          table[line_count - 1].line = NULL;
+          table[line_count - 1].offset = pos + 1;
+          table[line_count - 1].length = 0;
         }
-        offset += bytes_read; // Обновляем общий отступ
-    }
-}
-
-void print_file_contents(const char *filename) {
-    char buffer[MAX_LINE_LENGTH];
-    int fd = open(filename, O_RDONLY);
-    if (fd < 0) {
-        perror("Ошибка при открытии файла");
-        return;
-    }
-
-    ssize_t bytes_read;
-    while ((bytes_read = read(fd, buffer, sizeof(buffer))) > 0) {
-        write(STDOUT_FILENO, buffer, bytes_read);
-    }
-    close(fd);
-}
-
-int main() {
-    const char *filename = "file.txt"; // Имя файла для анализа
-    int fd = open(filename, O_RDONLY);
-    if (fd < 0) {
-        perror("Ошибка при открытии файла");
-        return EXIT_FAILURE;
-    }
-
-    LineInfo line_table[MAX_LINES];
-    size_t line_count;
-    build_line_table(fd, line_table, &line_count);
-    close(fd);
-
-    // Вывод таблицы отступов и длин строк
-    printf("Таблица отступов и длин строк:\n");
-    for (size_t i = 0; i < line_count; i++) {
-        printf("Строка %zu: Отступ = %lld, Длина = %zu\n", i, (long long)line_table[i].offset, line_table[i].length);
-    }
-
-    // Установка обработчика сигнала для alarm
-    signal(SIGALRM, handle_alarm);
-    alarm(5); // Устанавливаем таймер на 5 секунд
-
-    // Запрос номера строки
-    int line_number;
-    printf("Введите номер строки (0 для выхода): ");
-    while (!time_expired) {
-        if (scanf("%d", &line_number) == 1) {
-            if (line_number == 0) {
-                break;
-            }
-
-            if (line_number < 1 || line_number > line_count) {
-                printf("Некорректный номер строки. Попробуйте снова.\n");
-                continue;
-            }
-
-            // Открываем файл для чтения строки
-            fd = open(filename, O_RDONLY);
-            if (fd < 0) {
-                perror("Ошибка при открытии файла");
-                return EXIT_FAILURE;
-            }
-
-            // Позиционируемся на нужный отступ
-            lseek(fd, line_table[line_number - 1].offset, SEEK_SET);
-            
-            // Читаем строку
-            char line[MAX_LINE_LENGTH];
-            read(fd, line, line_table[line_number - 1].length);
-            line[line_table[line_number - 1].length - 1] = '\0'; // Заменяем '\n' на '\0'
-            printf("Строка %d: %s\n", line_number, line);
-
-            close(fd);
-            alarm(5); // Сбрасываем таймер
-            printf("Введите номер строки (0 для выхода): ");
-        } else {
-            // Ввод не был распознан
-            printf("Некорректный ввод. Попробуйте снова.\n");
-            // Сбрасываем таймер
-            alarm(5);
-            printf("Введите номер строки (0 для выхода): ");
+        else {
+          table[line_count - 1].length++;
         }
+        pos++;
+    }
+    line_count--;
+
+    for (int i = 0; i < line_count; i++) {
+      if (table[i].length > 0) {
+        table[i].line = (char*)malloc(table[i].length + 1);
+        lseek(file, table[i].offset, 0);
+        read(file, table[i].line, table[i].length);
+        table[i].line[table[i].length] = '\0';
+      }
     }
 
-    // Если время истекло, выводим содержимое файла
-    if (time_expired) {
-        printf("Время истекло! Выводим содержимое файла:\n");
-        print_file_contents(filename);
+    print_table(line_count);
+    char num[1024];
+    int idx = 0;
+    signal(SIGALRM, Alarm);
+    bool flag = true;
+    alarm(5);
+    while(scanf("%s", num)) {
+      if (flag) {
+        alarm(0);
+        flag = false;
+      }
+      if (!is_number(num)) {
+        perror("Wrong line number!\n");
+        continue;
+      }
+      idx = atoi(num);
+      if (idx == 0)
+        break;
+      if (idx > line_count || idx < 0) {
+        perror("Wrong line number!\n");
+        continue;
+      }
+      if (table[idx - 1].length > 0)
+        printf("%s\n", table[idx - 1].line);
+      else
+        printf("\n");
     }
 
-    return EXIT_SUCCESS;
+    for (int i = 0; i < line_count; i++) {
+        if (table[i].line != NULL)
+          free(table[i].line);
+    }
+    free(table);
+
+    close(file);
+
+    return 0;
 }
-

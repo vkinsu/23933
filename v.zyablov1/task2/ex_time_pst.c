@@ -13,7 +13,7 @@ int main() {
     pst_time = gmtime(&utc_time);
     
     // Вычитаем 8 часов для получения PST (UTC-8)
-    pst_time->tm_hour -= 8;
+    pst_time->tm_hour -= 7;
     
     // Обрабатываем корректировку времени (если ушло в предыдущий день)
     mktime(pst_time);

@@ -11,7 +11,7 @@ int main(int argc, char *argv[]) {
     pid_t pid = fork();
     if(pid == 0){
         printf("Child process has been created successfully\n");
-        execlp("cat", "cat", "a.txt", "b.txt", NULL);
+        execlp("cat", "cat", "file.txt", NULL);
     } else if(pid == -1) perror("fork err");
     else {
         int exit_status;
