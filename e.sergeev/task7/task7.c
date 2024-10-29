@@ -89,18 +89,27 @@ int main() {
     int line_number;
     char line_str[1024];
     while (1) {
+    	int fl = 1;
         printf("Enter line number (0 to exit): ");
         alarm(5);
         scanf("%s", &line_str);
-        line_number = atoi(line_str);
-        alarm(0);
+        for (int i = 0; i < strlen(line_str); i++)
+        	if (!isdigit(line_str[i])){
+        		fl = 0;
+        		break;
+        	}
+        if (fl){
+		    line_number = atoi(line_str);
+		    alarm(0);
 
-        if (line_number == 0)break;
-        else if (line_number > 0 && line_number <= line_count) {
-            off_t start = offsets[line_number - 1];
-            size_t len = lengths[line_number - 1];
-            printf("Line %d: %.*s", line_number, (int)len, mapped_file + start);
-        } 
+		    if (line_number == 0)break;
+		    else if (line_number > 0 && line_number <= line_count) {
+		        off_t start = offsets[line_number - 1];
+		        size_t len = lengths[line_number - 1];
+		        printf("Line %d: %.*s", line_number, (int)len, mapped_file + start);
+		    } 
+		    else printf("Invalid line number.\n");
+        }
         else printf("Invalid line number.\n");
     }
     

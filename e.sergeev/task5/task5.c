@@ -3,6 +3,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <ctype.h>
 
 #define BUFFER_SIZE 1024
 
@@ -69,30 +70,39 @@ int main() {
     int line_number;
     char line_str[1024];
     while (1) {
+    	int fl = 1;
     	printf("Enter line number (0 to exit): ");
-        scanf("%s", &line_str);
-        line_number = atoi(line_str);
-        if (line_number == 0) break;
-        else if (line_number > 0 && line_number <= line_count) {
-            lseek(fd, offsets[line_number - 1], SEEK_SET);
-            size_t len = lengths[line_number - 1];
-            char *line = (char *)malloc(len + 1);
+        scanf("%s", line_str);
+        for (int i = 0; i < strlen(line_str); i++)
+        	if (!isdigit(line_str[i])){
+        		fl = 0;
+        		break;
+        	}
+        if (fl){
+		    line_number = atoi(line_str);
+		    if (line_number == 0) break;
+		    else if (line_number > 0 && line_number <= line_count) {
+		        lseek(fd, offsets[line_number - 1], SEEK_SET);
+		        size_t len = lengths[line_number - 1];
+		        char *line = (char *)malloc(len + 1);
 
-            if (line == NULL) {
-                perror("Memory allocation error");
-                break;
-            }
+		        if (line == NULL) {
+		            perror("Memory allocation error");
+			            break;
+		        }
 
-            if (read(fd, line, len) != len) {
-                perror("Error reading line");
-                free(line);
-                break;
-            }
+		        if (read(fd, line, len) != len) {
+		            perror("Error reading line");
+		            free(line);
+		            break;
+		        }
 
-            line[len] = '\0';
-            printf("Line %d: %s", line_number, line);
-            free(line);
-        } 
+		        line[len] = '\0';
+		        printf("Line %d: %s", line_number, line);
+		        free(line);
+		    } 
+		    else printf("Invalid line number.\n");
+        }
         else printf("Invalid line number.\n");
         
     }
