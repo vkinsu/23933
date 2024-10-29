@@ -5,7 +5,7 @@
 
 int main(int argc, char *argv[]){
     if (argc < 2){
-        perror("missing filename argument\n");
+        perror("missing command name argument\n");
         return 1;
     }
 
@@ -19,7 +19,7 @@ int main(int argc, char *argv[]){
     if (child == 0) {
 //        printf("Child process is running\n");
 
-        execlp("cat", "cat", argv[1], NULL);
+        execvp(argv[1], &argv[1]);
 
         return 0;
     } else {
@@ -36,13 +36,7 @@ int main(int argc, char *argv[]){
         if (WIFEXITED(status)){
             int exit_code = WEXITSTATUS(status);
 
-            if (exit_code == 0) {
-                printf("Child process completed successfully\n");
-            }
-            if (exit_code == 1) {
-                printf("Child process exit with error code: %d\n", exit_code);
-            }
-
+            printf("Child process exit with code: %d\n", exit_code);
         } else {
             printf("Child process didnt complete normally\n");
         }
