@@ -158,12 +158,12 @@ struct col_info get_col_info(struct tm ctm, struct entry *cur) {
 }
 
 int main(int argc, char *argv[]) {
-    if (argc != 2) {
+    if (argc > 2) {
         printf("usage: %s [dir]\n", argv[0]);
         return 1;
     }
 
-    if (chdir(argv[1]) == -1) {
+    if (argc == 2 && chdir(argv[1]) == -1) {
         printf("can't list %s: %s\n", argv[1], strerror(errno));
         return 1;
     }
