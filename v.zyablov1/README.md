@@ -8,7 +8,7 @@
 
 Некоторые задачи требуют стороннего пользователя. Для его создания воспользуйтесь командой:
 ```bash
-echo "Enter new user's name:" | sudo useradd -m $1
+echo "Enter new user's name:"; read username; sudo useradd -m "$username"
 ```
 Чтобы очистить проект от собранных запускаемых файлов можете выполнить:
 ```

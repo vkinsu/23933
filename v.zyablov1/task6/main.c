@@ -28,7 +28,6 @@ void Timeout() {
 }
 
 int main(int argc, char *argv[]) {
-    char buff[64];
     long val;
     if (argc == 1) {
         perror("run without arguments");
@@ -78,7 +77,8 @@ int main(int argc, char *argv[]) {
 
     printf("Enter string number: ");
     alarm(5);
-    while (scanf("%s", &buff) != 0) {
+    char buff[64];
+    while (scanf("%63s", buff) != 0) {
         char *endptr;
         errno = 0;
         val = strtol(buff, &endptr, 10);
