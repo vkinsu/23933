@@ -163,7 +163,10 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    chdir(argv[1]);
+    if (chdir(argv[1]) == -1) {
+        printf("can't list %s: %s\n", argv[1], strerror(errno));
+        return 1;
+    }
 
     time_t ctime = time(NULL);
     struct tm ctm;
