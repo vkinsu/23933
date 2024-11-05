@@ -52,23 +52,23 @@ struct entry *read_entries() {
         }
 
         if (stat(ep->d_name, &st) == -1) {
-            // printf("can't stat %s: %s\n", ep->d_name, strerror(errno));
+            printf("can't stat %s: %s\n", ep->d_name, strerror(errno));
             // exit(1);
             continue;
         }
 
         pwd = getpwuid(st.st_uid);
         if (pwd == NULL) {
-            // printf("can't get passwd for uid %d: %s\n", st.st_uid,
-            //        strerror(errno));
+            printf("can't get passwd for uid %d: %s\n", st.st_uid,
+                   strerror(errno));
             // exit(1);
             continue;
         }
 
         grp = getgrgid(st.st_gid);
         if (grp == NULL) {
-            // printf("can't get group for gid %d: %s\n", st.st_gid,
-            //        strerror(errno));
+            printf("can't get group for gid %d: %s\n", st.st_gid,
+                   strerror(errno));
             // exit(1);
             continue;
         }
