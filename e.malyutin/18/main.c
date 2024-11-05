@@ -28,63 +28,45 @@ struct entry {
     char uname[256];
     char gname[256];
     struct stat st;
-    struct entry *next;
     struct tm mtime;
 };
 
-struct entry *read_entries() {
-    struct entry *cur = NULL;
-
-    DIR *dp = opendir("./");
-    if (dp == NULL) {
-        perror("can't open directory");
-        exit(1);
-    }
-
-    struct dirent *ep;
+struct entry *read_entries(int n_entries, char **names) {
     struct stat st;
     struct passwd *pwd;
     struct group *grp;
 
-    while ((ep = readdir(dp)) != NULL) {
-        if (!strcmp(ep->d_name, ".") || !strcmp(ep->d_name, "..")) {
-            continue;
-        }
+    struct entry *entries = malloc(n_entries * sizeof(struct entry));
 
-        if (stat(ep->d_name, &st) == -1) {
-            printf("can't stat %s: %s\n", ep->d_name, strerror(errno));
-            // exit(1);
-            continue;
+    for (size_t i = 0; i < n_entries; i++) {
+        if (stat(names[i], &st) == -1) {
+            printf("can't stat %s: %s\n", names[i], strerror(errno));
+            exit(1);
         }
 
         pwd = getpwuid(st.st_uid);
         if (pwd == NULL) {
             printf("can't get passwd for uid %d: %s\n", st.st_uid,
                    strerror(errno));
-            // exit(1);
-            continue;
+            exit(1);
         }
 
         grp = getgrgid(st.st_gid);
         if (grp == NULL) {
             printf("can't get group for gid %d: %s\n", st.st_gid,
                    strerror(errno));
-            // exit(1);
-            continue;
+            exit(1);
         }
 
-        struct entry *entry = malloc(sizeof(struct entry));
-        strcpy(entry->fname, ep->d_name);
-        strcpy(entry->uname, pwd->pw_name);
-        strcpy(entry->gname, grp->gr_name);
-        entry->st = st;
-        localtime_r(&st.st_mtime, &entry->mtime);
-        entry->mtime.tm_year += 1900;
-        entry->next = cur;
-        cur = entry;
+        strcpy(entries[i].fname, names[i]);
+        strcpy(entries[i].uname, pwd->pw_name);
+        strcpy(entries[i].gname, grp->gr_name);
+        entries[i].st = st;
+        localtime_r(&st.st_mtime, &entries[i].mtime);
+        entries[i].mtime.tm_year += 1900;
     }
 
-    return cur;
+    return entries;
 }
 
 const char months[12][4] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -100,16 +82,20 @@ struct col_info {
     char show_year;
     int max_day_len;
     int max_year_len;
+    int max_links_len;
 };
 
-struct col_info get_col_info(struct tm ctm, struct entry *cur) {
+struct col_info get_col_info(struct tm ctm, struct entry *entries, size_t n) {
     struct col_info info = {0};
     info.max_uname_len = 3;
     info.max_gname_len = 3;
     info.max_size_len = 4;
     info.max_year_len = 4;
+    info.max_links_len = 4;
 
-    while (cur != NULL) {
+    for (size_t i = 0; i < n; i++) {
+        struct entry *cur = &entries[i];
+
         if (S_ISREG(cur->st.st_mode)) {
             info.has_files = 1;
             if (num_len(cur->st.st_size) > info.max_size_len) {
@@ -147,35 +133,37 @@ struct col_info get_col_info(struct tm ctm, struct entry *cur) {
         }
 
         int year_len = num_len(cur->mtime.tm_year);
-        if (year_len) {
+        if (info.max_year_len < year_len) {
             info.max_year_len = year_len;
         }
 
-        cur = cur->next;
+        int links_len = num_len(cur->st.st_nlink);
+        if (info.max_links_len < links_len) {
+            info.max_links_len = links_len;
+        }
     }
 
     return info;
 }
 
 int main(int argc, char *argv[]) {
-    if (argc > 2) {
-        printf("usage: %s [dir]\n", argv[0]);
-        return 1;
-    }
-
-    if (argc == 2 && chdir(argv[1]) == -1) {
-        printf("can't list %s: %s\n", argv[1], strerror(errno));
-        return 1;
-    }
-
     time_t ctime = time(NULL);
     struct tm ctm;
     localtime_r(&ctime, &ctm);
     ctm.tm_year += 1900;
 
-    struct entry *entry = read_entries();
+    struct entry *entries;
+    size_t n_entries;
+    if (argc == 1) {
+        char *args = ".";
+        entries = read_entries(1, &args);
+        n_entries = 1;
+    } else {
+        n_entries = argc - 1;
+        entries = read_entries(n_entries, argv + 1);
+    }
 
-    struct col_info info = get_col_info(ctm, entry);
+    struct col_info info = get_col_info(ctm, entries, n_entries);
 
     // header
     printf("     flags" TAB "%*s" TAB "%*s", info.max_uname_len, "uid",
@@ -185,6 +173,8 @@ int main(int argc, char *argv[]) {
         printf(TAB "%*s", info.max_size_len, "size");
     }
 
+    printf(TAB "%*s", info.max_links_len, "link");
+
     if (info.show_md) {
         printf(TAB "%*s",
                4 + info.max_day_len + info.show_year * (info.max_year_len + 1),
@@ -193,8 +183,9 @@ int main(int argc, char *argv[]) {
 
     printf(TAB " time" TAB "name\n");
 
-    struct entry *cur = entry;
-    while (cur != NULL) {
+    for (size_t i = 0; i < n_entries; i++) {
+        struct entry *cur = &entries[i];
+
         char perms[11];
 
         if (S_ISDIR(cur->st.st_mode)) {
@@ -224,6 +215,8 @@ int main(int argc, char *argv[]) {
             printf(TAB "%*s", info.max_size_len, "");
         }
 
+        printf(TAB "%*zu", info.max_links_len, cur->st.st_nlink);
+
         if (info.show_md) {
             printf(TAB "%s %*d", months[cur->mtime.tm_mon], info.max_day_len,
                    cur->mtime.tm_mday);
@@ -235,7 +228,5 @@ int main(int argc, char *argv[]) {
 
         printf(TAB "%02d:%02d" TAB "%s\n", cur->mtime.tm_hour,
                cur->mtime.tm_min, cur->fname);
-
-        cur = cur->next;
     }
 }
