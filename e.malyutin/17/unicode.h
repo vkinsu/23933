@@ -44,7 +44,8 @@ static inline u32 uc_decode_char(u8 len, u8 *str) {
 
     u32 r = str[0] & (0b11111111 >> (len + 1));
 
-    for (u8 i = 1; i < len; i++) {
+    u8 i;
+    for (i = 1; i < len; i++) {
         r = r << 6 | (str[i] & 0b00111111);
     }
 

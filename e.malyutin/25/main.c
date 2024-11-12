@@ -29,7 +29,8 @@ int main(void) {
 
     if (pid == 0) {
         close(fd[0]);
-        for (int i = 0; i < lenof(msgs); i++) {
+        int i;
+        for (i = 0; i < lenof(msgs); i++) {
             write(fd[1], msgs[i], strlen(msgs[i]) + 1);
             write(fd[1], "\n", 1);
             sleep(1);
@@ -40,7 +41,8 @@ int main(void) {
         char buf[128];
         int size;
         while ((size = read(fd[0], buf, sizeof(buf))) > 0) {
-            for (int i = 0; i < size; i++) {
+            int i;
+            for (i = 0; i < size; i++) {
                 buf[i] = toupper(buf[i]);
             }
             write(STDOUT_FILENO, buf, size);

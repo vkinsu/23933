@@ -58,7 +58,8 @@ void cursor_to(u64 x, u64 y) {
 }
 
 void clear() {
-    for (usize i = 0; i < max_lines; i++) {
+    usize i;
+    for (i = 0; i < max_lines; i++) {
         cursor_to(0, i);
         printf(ESC "2K");
     }

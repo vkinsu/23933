@@ -1,5 +1,5 @@
 main: main.c
-	$(CC) -o $@ $^ $(CFLAGS) -m64
+	$(CC) -o $@ $^ $(CFLAGS)
 
 clean:
 	rm -f main
