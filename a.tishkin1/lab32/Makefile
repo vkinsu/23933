@@ -1,6 +1,6 @@
 main:
-	cc -o client client.c
-	cc -o server server.c
+	cc -o client client.c -lsocket
+	cc -o server server.c -lsocket
 
 
 clean:
