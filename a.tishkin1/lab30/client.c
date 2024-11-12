@@ -3,6 +3,8 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <unistd.h>
+#include <ctype.h>
+#include <stdlib.h>
 
 
 int main() {
