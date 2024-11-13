@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/types.h>
@@ -8,18 +9,18 @@
 #include <termios.h>
 
 int counter = 0;
-char bell = 7;
-struct termios tty, savetty;
 int fd;
 
 void sigcatch(int sig){
     signal(sig, SIG_IGN);
     if(sig == SIGINT){
         counter++;
-        write(fd, &bell, sizeof(char));
+        putchar('\x7');
     }
     else if (sig == SIGQUIT){
-        printf("\n%d - num of bells\n", counter);
+        char message[64];
+        sprintf(message, "\n%d - num of bells\n", counter);
+        write(fd, message, strlen(message));
         exit(0);
     }
     signal(sig, sigcatch);
