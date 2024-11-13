@@ -12,21 +12,20 @@ char bell = 7;
 struct termios tty;
 int fd;
 
-void handler(int sig){
-    if (sig == SIGINT){
-        counter++;
-        write(fd, &bell, sizeof(char));
-    }
-    else if (sig == SIGQUIT){
-        printf("\n%d - num of bells\n", counter);
-        exit(0);
-    }
+void sigint_handler(int sig){
+    counter++;
+    write(fd, &bell, sizeof(char));
+}
+
+void sigquit_handler(int sig){
+    printf("\n%d - num of bells\n", counter);
+    exit(0);
 }
 
 int main(){
     fd = open("/dev/tty", O_WRONLY);
-    signal(SIGINT, handler);
-    signal(SIGQUIT, handler);
+    signal(SIGINT, sigint_handler);
+    signal(SIGQUIT, sigquit_handler);
 
     char buff;
     while(1){
