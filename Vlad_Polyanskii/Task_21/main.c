@@ -12,14 +12,15 @@ char bell = 7;
 struct termios tty, savetty;
 int fd;
 
-void sigint_handler(){
-    counter++;
-    write(fd, &bell, sizeof(char));
-}
-
-void sigquit_handler(){
-    printf("\n%d - num of bells\n", counter);
-    exit(0);
+void sigcatch(int sig){
+    if(sig == SIGINT){
+        counter++;
+        write(fd, &bell, sizeof(char));
+    }
+    else if (sig == SIGQUIT){
+        printf("\n%d - num of bells\n", counter);
+        exit(0);
+    }
 }
 
 int main(){
@@ -30,8 +31,8 @@ int main(){
        exit(1);
     }
 
-    signal(SIGINT, sigint_handler);
-    signal(SIGQUIT, sigquit_handler);
+    signal(SIGINT, sigcatch);
+    signal(SIGQUIT, sigcatch);
 
     char buff;
     while(1){
