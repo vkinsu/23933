@@ -13,6 +13,7 @@ struct termios tty, savetty;
 int fd;
 
 void sigcatch(int sig){
+    signal(sig, SIG_IGN);
     if(sig == SIGINT){
         counter++;
         write(fd, &bell, sizeof(char));
@@ -21,6 +22,7 @@ void sigcatch(int sig){
         printf("\n%d - num of bells\n", counter);
         exit(0);
     }
+    signal(sig, sigcatch);
 }
 
 int main(){
