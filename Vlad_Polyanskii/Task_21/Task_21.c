@@ -15,7 +15,7 @@ void sigcatch(int sig){
     signal(sig, SIG_IGN);
     if(sig == SIGINT){
         counter++;
-        putchar('\x7');
+        write(fd, "\a", 1);
     }
     else if (sig == SIGQUIT){
         char message[64];
