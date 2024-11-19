@@ -2,27 +2,26 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <signal.h>
+#define BEL "\07"
 
-int beep_count = 0;
+int ans = 0;
 
-void signal_handler(int sig) {
-  if (sig == SIGINT) {
-    write(1, "\a", 1);
-    beep_count++;
-  } 
-  else if (sig == SIGQUIT) {
-    printf("\nSignal count: %d\n", beep_count);
-    exit(0);
-  }
+void handler_sigint(int signum) {
+	write(STDOUT_FILENO, BEL, 1);
+	ans++;
+	signal(SIGINT, handler_sigint);
+}
+
+void handler_sigquit(int signum) {
+	printf("\n%d\n", ans);
+	exit(0);
 }
 
 int main() {
-  signal(SIGINT, signal_handler);
-  signal(SIGQUIT, signal_handler);
+	signal(SIGINT, handler_sigint);
+	signal(SIGQUIT, handler_sigquit);
 
-  while (1) {
-    sleep(1);
-  }
-
-  return 0;
+	while (1) {
+            pause();
+        }
 }
