@@ -19,6 +19,8 @@ void set_terminal_mode(int enable) {
         term.c_lflag |= (ICANON | ECHO); // Включаем канонический режим и эхо
     } else {
         term.c_lflag &= ~(ICANON | ECHO); // Выключаем канонический режим и эхо
+        term.c_cc[VMIN] = 1;  // Считывать по 1 символу
+        term.c_cc[VTIME] = 0; // Без тайм-аутов
     }
 
     tcsetattr(STDIN_FILENO, TCSANOW, &term);
