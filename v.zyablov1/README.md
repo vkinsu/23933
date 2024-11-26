@@ -23,9 +23,13 @@ echo "Enter new user's name:"; read username; sudo useradd -m "$username"
 (Они не соглашались)
 
 # Как использовать решения одногруппников
-1. Находим донора: имя пользователя `${username}` и номер группы `${i_group}`.
-2. Смотрим на GitHub путь к решению, например `task17/task17.c`.
+1. Находим донора: имя пользователя `${username}` и окончание номера его группы `${i_group}`.
+2. Смотрим на GitHub путь к решению `"${folder_name}/${file_name}"`.
 3. Применяем скрипт для скачивания
 ```
 ./scripts/download_solution.sh ${i_group} ${username} "${folder_name}/${file_name}"
+```
+Например для url-пути `https://github.com/vkinsu/23930/blob/main/Mikhail_Vays/task17/task17.c` такие параметры:
+```
+./scripts/download_solution.sh 0 Mikhail_Vays "task17/task17.c"
 ```
