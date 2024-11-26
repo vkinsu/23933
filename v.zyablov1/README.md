@@ -16,7 +16,7 @@ echo "Enter new user's name:"; read username; sudo useradd -m "$username"
 ```
 
 # Источники
-[Mikhail_Vays](https://github.com/vkinsu/23930/tree/main/Mikhail_Vays): 9,10   
+[Mikhail_Vays](https://github.com/vkinsu/23930/tree/main/Mikhail_Vays): 9,10, 17,18   
 [kireev](https://github.com/vkinsu/23930/tree/main/kireev): 8   
 [Chat GPT](https://chatgpt.com): 2   
 [a.tishkin1](https://github.com/vkinsu/23933/tree/main/a.tishkin1): 1,3,4,5,6,7   
