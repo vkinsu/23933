@@ -1,7 +1,7 @@
 all: server client
 
 server: server.c
-	gcc server.c -o server
+	cc server.c -lsocket -o server
 
 client: client.c
-	gcc client.c -o client
+	cc client.c -lsocket -o client

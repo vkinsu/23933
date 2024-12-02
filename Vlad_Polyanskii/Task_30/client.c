@@ -41,9 +41,8 @@ int main(){
         default:{
             if(fds.revents & POLLOUT){
                 fds.revents = 0;
-                char message[256];
-                sprintf(message, "Hello World!");
-                if(write(fd, message, 256) <= 0){
+                char message[256] = "Hello world!";
+                if(write(fd, message, strlen(message)) <= 0){
                     printf("Can't send a message\n");
                     close(fd);
                     return 1;

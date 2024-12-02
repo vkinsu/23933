@@ -47,9 +47,17 @@ int main(int argc, char** argv){
             perror("execvp error");
             return 1;
         }
+        return 0;
     }
     else{
-        wait(NULL);
+        int stat;
+        wait(&stat);
+        if(stat != 0){
+            printf("Child process has returned %d\n", stat);
+            close(fd);
+            return stat;
+        }
+        
         int client_fd = accept(fd, NULL, NULL);
         if(client_fd == -1){
             perror("Accept error");
