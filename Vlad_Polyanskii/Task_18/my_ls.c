@@ -104,7 +104,7 @@ void print_stat(char* path, struct stat path_info){
         user_access(path_info);
         group_access(path_info);
         other_access(path_info);
-        putchar(' ');
+        printf(" %ld ", path_info.st_nlink);
         usr_grp_names(path_info);
         putchar(' ');
         file_size(path_info);
