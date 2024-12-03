@@ -65,7 +65,8 @@ int main(void) {
         }
 
         // process all fds
-        for (size_t i = 0; i < fds_n; i++) {
+        size_t i;
+        for (i = 0; i < fds_n; i++) {
             if (fds[i].revents == 0) {
                 continue;
             }
@@ -119,7 +120,8 @@ int main(void) {
                     break;
                 }
 
-                for (int i = 0; i < len; i++) {
+                int i;
+                for (i = 0; i < len; i++) {
                     buf[i] = toupper(buf[i]);
                 }
 
