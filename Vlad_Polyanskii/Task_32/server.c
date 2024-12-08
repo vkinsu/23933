@@ -34,6 +34,7 @@ void* get_message(void* arg){
     struct aiocb readrq;
     memset(&readrq, 0, sizeof(readrq));
     readrq.aio_fildes = pd->fd;
+    printf("Client fd in ptread = %d\n", readrq.aio_fildes);
     char sym;
     readrq.aio_buf = &sym;
     readrq.aio_nbytes = 1;
@@ -126,6 +127,7 @@ int main(int argc, char** argv){
             }
 
             clients_data[connects].fd = client_fd;
+            printf("Client %d fd = %d\n", connects, client_fd);
             clients_data[connects].client_id = connects;
 
             if(pthread_create(&tids[connects], NULL, get_message, &clients_data[connects]) != 0){
@@ -137,9 +139,9 @@ int main(int argc, char** argv){
         }
 
         pthread_join(tids[0], NULL);
-        printf("Server got a message %d\n", connects);
+        printf("Server got a message %d\n", 0);
         pthread_join(tids[1], NULL);
-        printf("Server got a message %d\n", connects);
+        printf("Server got a message %d\n", 1);
     }
     close(fd);
     return 0;
