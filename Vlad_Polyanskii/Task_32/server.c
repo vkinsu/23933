@@ -19,40 +19,46 @@ typedef struct pthread_data{
 } pthread_data;
 
 int end_messages[2];
+int beg_messages[2];
 
-void handler(int sig, siginfo_t* sig_inf, void *arg){
+void begin_handler(int sig){
     if(sig == SIGRTMIN){
+        beg_messages[0] = 1;
+    }
+    if(sig == SIGRTMIN + 3){
+        beg_messages[1] = 1;
+    }
+}
+
+void end_handler(int sig, siginfo_t* sig_inf, void *arg){
+    if(sig == SIGRTMIN + 1){
         end_messages[0] = 1;
     }
-    if(sig == SIGRTMIN + 2){
+    if(sig == SIGRTMIN + 4){
         end_messages[1] = 1;
     }
 }
 
 void* get_message(void* arg){
     pthread_data* pd = (pthread_data*)arg;
+    
     struct aiocb readrq;
     memset(&readrq, 0, sizeof(readrq));
     readrq.aio_fildes = pd->fd;
-    printf("Client fd in ptread = %d\n", readrq.aio_fildes);
     char sym;
     readrq.aio_buf = &sym;
     readrq.aio_nbytes = 1;
 
-    struct sigaction act;
-    memset(&act, 0, sizeof(act));
-    act.sa_flags |= SA_SIGINFO;
-    act.sa_sigaction = handler;
-    sigaction(SIGRTMIN + pd->client_id, &act, NULL);
-    
-    int len = 0;
+    while(beg_messages[pd->client_id] != 1);
+
     aio_read(&readrq);
     while(1){
         int ret = aio_error(&readrq);
         switch (ret){
             case 0:{
                 if(end_messages[pd->client_id] == 1 && sym == EOF){
-                    sigsend(P_ALL, 0, SIGRTMIN + pd->client_id + 2);
+                    int client_sig = SIGRTMIN + pd->client_id * 3;
+                    sigsend(P_ALL, 0, client_sig + 2);
                     close(pd->fd);
                     return NULL;
                 }
@@ -63,14 +69,24 @@ void* get_message(void* arg){
                     perror("aio read error");
                     return arg;
                 }
-                len++;
                 putchar(toupper(sym));
                 aio_read(&readrq);
                 break;
             }
         }
     }
+}
 
+void set_reactions(){
+    struct sigaction act;
+    for(int id = 0; id < 2; id++){
+        int sig = SIGRTMIN + id * 3;
+        memset(&act, 0, sizeof(act));
+        act.sa_flags |= SA_SIGINFO;
+        act.sa_sigaction = end_handler;
+        sigaction(sig + 1, &act, NULL);
+        signal(sig, begin_handler);
+    }
 }
 
 int main(int argc, char** argv){
@@ -90,7 +106,9 @@ int main(int argc, char** argv){
         perror("Bind error");
         close(fd);
         return 1;
-    } 
+    }
+
+    set_reactions();
 
     if(listen(fd, 2) == -1){
         perror("Listen error");
@@ -110,7 +128,6 @@ int main(int argc, char** argv){
             perror("execvp error");
             return 1;
         }
-        return 0;
     }
     else{
         memset(end_messages, 0, sizeof(end_messages));
@@ -142,7 +159,8 @@ int main(int argc, char** argv){
         printf("Server got a message %d\n", 0);
         pthread_join(tids[1], NULL);
         printf("Server got a message %d\n", 1);
+        wait(NULL);
+        close(fd);
     }
-    close(fd);
     return 0;
 }

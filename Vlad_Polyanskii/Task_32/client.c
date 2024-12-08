@@ -12,7 +12,7 @@
 
 typedef struct pthread_data{
     int fd;
-    int sig;
+    int id;
     char* message;
     int len;
 } pthread_data;
@@ -36,22 +36,29 @@ void close_fds(int n){
 int servers_done[2];
 
 void handler(int sig){
-    close(fds[sig - SIGRTMIN - 1]);
-    servers_done[sig - SIGRTMIN - 1] = 1;
-    signal(sig, SIG_IGN);
+    if(sig == SIGRTMIN + 2){
+        close(fds[0]);
+        servers_done[0] = 1;
+    }
+    if(sig == SIGRTMIN + 5){
+        close(fds[1]);
+        servers_done[1] = 1;
+    }
 }
 
 void* send_message(void* arg){
     pthread_data* pd = (pthread_data*)arg;
+    int sig = SIGRTMIN + pd->id * 3;
+    
     struct aiocb writerq;
     memset(&writerq, 0, sizeof(writerq));
     writerq.aio_fildes = pd->fd;
     writerq.aio_buf = pd->message;
     writerq.aio_nbytes = pd->len;
     writerq.aio_sigevent.sigev_notify = SIGEV_SIGNAL;
-    writerq.aio_sigevent.sigev_signo = pd->sig;
+    writerq.aio_sigevent.sigev_signo = sig + 1;
 
-    signal(pd->sig + 2, handler);
+    sigsend(P_ALL, 0, sig);
     aio_write(&writerq);
     while(1){
         int ret = aio_return(&writerq);
@@ -64,12 +71,19 @@ void* send_message(void* arg){
         else break;  
     }
 
-    while(servers_done[pd->sig - SIGRTMIN] != 1);
+    while(servers_done[pd->id] != 1);
 }
 
 void init_sockets(int n){
     for(int i = 0; i < n; i++){
         fds[i] = socket(AF_UNIX, SOCK_STREAM, 0);
+    }
+}
+
+void set_reactions(){
+    for(int id = 0; id < 2; id++){
+        int sig = SIGRTMIN + id * 3;
+        signal(sig + 2, handler);
     }
 }
 
@@ -83,6 +97,8 @@ int main(){
     memset(&addr, 0, sizeof(addr));
     addr.sun_family = AF_UNIX;
     strncpy(addr.sun_path, socket_path, sizeof(addr.sun_path) - 1);
+
+    set_reactions();
 
     if(make_connect(fds[1], &addr) == 1){
         perror("Connect error");
@@ -98,13 +114,13 @@ int main(){
 
     pthread_data pd0;
     pd0.fd = fds[0];
-    pd0.sig = SIGRTMIN;
+    pd0.id = 0;
     pd0.message = "Hello world!";
     pd0.len = strlen(pd0.message);
 
     pthread_data pd1;
     pd1.fd = fds[1];
-    pd1.sig = SIGRTMIN + 1;
+    pd1.id = 1;
     pd1.message = "Another message";
     pd1.len = strlen(pd1.message);
 
