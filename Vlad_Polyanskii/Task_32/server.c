@@ -20,14 +20,12 @@ typedef struct pthread_data{
 
 int end_messages[2];
 
-void sa_sigaction(int sig, siginfo_t* sig_inf, void* arg){
+void handler(int sig, siginfo_t* sig_inf, void *arg){
     if(sig == SIGRTMIN){
         end_messages[0] = 1;
-        sigaction(sig, SIG_IGN, NULL);
     }
     if(sig == SIGRTMIN + 2){
         end_messages[1] = 1;
-        sigaction(sig, SIG_IGN, NULL);
     }
 }
 
@@ -43,7 +41,7 @@ void* get_message(void* arg){
     struct sigaction act;
     memset(&act, 0, sizeof(act));
     act.sa_flags |= SA_SIGINFO;
-    act.sa_sigaction = sa_sigaction;
+    act.sa_sigaction = handler;
     sigaction(SIGRTMIN + pd->client_id, &act, NULL);
     
     int len = 0;
@@ -52,8 +50,8 @@ void* get_message(void* arg){
         int ret = aio_return(&readrq);
         switch (ret){
             case 0:{
-                if(end_messages == 1 && len > 0){
-                    sigsend(P_ALL, 0, SIGRTMIN + pd->client_id + 1);
+                if(end_messages[pd->client_id] == 1 && len > 0){
+                    sigsend(P_ALL, 0, SIGRTMIN + pd->client_id + 2);
                     close(pd->fd);
                     return NULL;
                 }
@@ -131,8 +129,7 @@ int main(int argc, char** argv){
             }
 
             clients_data[connects].fd = client_fd;
-            clients_data[connects].client_id = curr_id;
-            curr_id += 2;
+            clients_data[connects].client_id = connects;
 
             if(pthread_create(&tids[connects], NULL, get_message, &clients_data[connects]) != 0){
                 perror("Thread create error");

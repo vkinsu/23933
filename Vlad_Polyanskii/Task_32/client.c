@@ -51,7 +51,7 @@ void* send_message(void* arg){
     writerq.aio_sigevent.sigev_notify = SIGEV_SIGNAL;
     writerq.aio_sigevent.sigev_signo = pd->sig;
 
-    signal(pd->sig + 1, handler);
+    signal(pd->sig + 2, handler);
     aio_write(&writerq);
     while(1){
         int ret = aio_return(&writerq);
@@ -104,7 +104,7 @@ int main(){
 
     pthread_data pd1;
     pd1.fd = fds[1];
-    pd1.sig = SIGRTMIN + 2;
+    pd1.sig = SIGRTMIN + 1;
     pd1.message = "Another message";
     pd1.len = strlen(pd1.message);
 
