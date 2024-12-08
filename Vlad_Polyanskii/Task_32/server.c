@@ -47,24 +47,21 @@ void* get_message(void* arg){
     int len = 0;
     aio_read(&readrq);
     while(1){
-        int ret = aio_return(&readrq);
+        int ret = aio_error(&readrq);
         switch (ret){
             case 0:{
-                if(end_messages[pd->client_id] == 1 && len > 0){
+                if(end_messages[pd->client_id] == 1 && sym == EOF){
                     sigsend(P_ALL, 0, SIGRTMIN + pd->client_id + 2);
                     close(pd->fd);
                     return NULL;
                 }
                 break;
             }
-            case -1:{
+            default:{
                 if(errno != EINPROGRESS){
                     perror("aio read error");
                     return arg;
                 }
-                break;
-            }
-            default:{
                 len++;
                 putchar(toupper(sym));
                 aio_read(&readrq);
