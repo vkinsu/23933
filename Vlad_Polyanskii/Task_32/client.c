@@ -69,7 +69,7 @@ void* send_message(void* arg){
 
 void init_sockets(int n){
     for(int i = 0; i < n; i++){
-        fds[i] = socket(AF_UNIX, SOCK_STREAM | SOCK_NONBLOCK, 0);
+        fds[i] = socket(AF_UNIX, SOCK_STREAM, 0);
     }
 }
 
