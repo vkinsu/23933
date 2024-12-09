@@ -71,7 +71,7 @@ void* send_message(void* arg){
         else break;  
     }
     sigsend(P_PID, pd->ppid, sig + 1);
-    printf("Client %d send all message\n", pd->id);
+    printf("Client %d send full message\n", pd->id);
 
     while(servers_done[pd->id] != 1);
     printf("Client %d disconnect\n", pd->id);
@@ -139,8 +139,6 @@ int main(){
         return 1;
     }
     pthread_join(tids[0], NULL);
-    printf("Client 1 send a message\n");
     pthread_join(tids[1], NULL);
-    printf("Client 2 send a message\n");
     return 0;
 }

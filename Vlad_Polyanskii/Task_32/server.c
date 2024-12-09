@@ -67,7 +67,7 @@ void* get_message(void* arg){
                 break;
             }
             default:{
-                if(errno != EINPROGRESS){
+                if(ret != EINPROGRESS){
                     perror("aio read error");
                     return arg;
                 }
