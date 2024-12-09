@@ -60,18 +60,18 @@ void* get_message(void* arg){
         int ret = aio_error(&readrq);
         switch (ret){
             case 0:{
-                if(end_messages[pd->client_id] == 1 && sym == '\0'){
-                    close(pd->client_fd);
-                    sigsend(P_PID, pd->child_pid, client_sig + 2);
-                    printf("Server got a message %d\n", pd->client_id);
-                    return NULL;
-                }
                 putchar(toupper(sym));
                 aio_read(&readrq);
                 break;
             }
             default:{
-                if(ret != EINPROGRESS){
+                if(ret == EBADF && end_messages[pd->client_id] == 1){
+                    printf("Server got a message %d\n", pd->client_id);
+                    close(pd->client_fd);
+                    sigsend(P_PID, pd->child_pid, client_sig + 2);
+                    return NULL;
+                }
+                else if(ret != EINPROGRESS){
                     perror("aio read error");
                     close(pd->client_fd);
                     sigsend(P_PID, pd->child_pid, client_sig + 2);
