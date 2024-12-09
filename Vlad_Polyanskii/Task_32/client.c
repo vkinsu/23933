@@ -57,8 +57,8 @@ void* send_message(void* arg){
 
     const struct aiocb* requests[2] = {&writerq, NULL};
 
-    sigsend(P_PID, pd->ppid, sig);
     aio_write(&writerq);
+    sigsend(P_PID, pd->ppid, sig);
     while(1){
         aio_suspend(requests, 1, NULL);
         int ret = aio_return(&writerq);

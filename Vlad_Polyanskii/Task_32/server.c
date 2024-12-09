@@ -52,6 +52,7 @@ void* get_message(void* arg){
 
     while(beg_messages[pd->client_id] != 1);
 
+    int client_sig = SIGRTMIN + pd->client_id * 3;
     printf("Server start reading a message %d\n", pd->client_id);
     aio_read(&readrq);
     while(1){
@@ -59,17 +60,18 @@ void* get_message(void* arg){
         switch (ret){
             case 0:{
                 if(end_messages[pd->client_id] == 1 && sym == EOF){
-                    int client_sig = SIGRTMIN + pd->client_id * 3;
-                    sigsend(P_PID, pd->child_pid, client_sig + 2);
                     close(pd->client_fd);
+                    sigsend(P_PID, pd->child_pid, client_sig + 2);
+                    printf("Server got a message %d\n", pd->client_id);
                     return NULL;
                 }
                 break;
             }
             default:{
-                printf("error = %d\n", ret);
                 if(ret != EINPROGRESS){
                     perror("aio read error");
+                    close(pd->client_fd);
+                    sigsend(P_PID, pd->child_pid, client_sig + 2);
                     return arg;
                 }
                 putchar(toupper(sym));
@@ -156,9 +158,7 @@ int main(int argc, char** argv){
         }
 
         pthread_join(tids[0], NULL);
-        printf("Server got a message %d\n", 0);
         pthread_join(tids[1], NULL);
-        printf("Server got a message %d\n", 1);
         wait(NULL);
         close(fd);
     }
