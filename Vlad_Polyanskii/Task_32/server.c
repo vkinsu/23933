@@ -65,7 +65,7 @@ void* get_message(void* arg){
             }
             default:{
                 if(ret == EAGAIN && end_messages[pd->client_id] == 1){
-                    printf("Server got a message %d\n", pd->client_id);
+                    printf("\nServer got a message %d\n", pd->client_id);
                     close(pd->client_fd);
                     sigsend(P_PID, pd->child_pid, client_sig + 2);
                     return NULL;
@@ -137,7 +137,6 @@ int main(int argc, char** argv){
         pd[0].child_pid = pid;
         pd[1].child_pid = pid;
 
-        printf("\nServer output:\n");
         int connects = 0;
         int curr_id = 0;
         while(connects < 2){
