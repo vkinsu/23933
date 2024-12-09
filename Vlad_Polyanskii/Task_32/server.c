@@ -46,7 +46,7 @@ void* get_message(void* arg){
     struct aiocb readrq;
     memset(&readrq, 0, sizeof(readrq));
     readrq.aio_fildes = pd->client_fd;
-    char sym;
+    char sym = 0;
     readrq.aio_buf = &sym;
     readrq.aio_nbytes = 1;
 
@@ -67,6 +67,7 @@ void* get_message(void* arg){
                 break;
             }
             default:{
+                printf("error = %d\n", ret);
                 if(ret != EINPROGRESS){
                     perror("aio read error");
                     return arg;
@@ -80,7 +81,6 @@ void* get_message(void* arg){
 }
 
 void set_reactions(){
-    struct sigaction act;
     for(int id = 0; id < 2; id++){
         int sig = SIGRTMIN + id * 3;
         signal(sig, begin_handler);
