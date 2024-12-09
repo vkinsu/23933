@@ -74,8 +74,8 @@ void* send_message(void* arg){
     printf("Client %d send full message\n", pd->id);
 
     while(servers_done[pd->id] != 1);
-    printf("Client %d disconnect\n", pd->id);
     close(pd->fd);
+    printf("Client %d disconnect\n", pd->id);
 }
 
 void init_sockets(int n){

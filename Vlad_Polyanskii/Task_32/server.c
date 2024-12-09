@@ -38,7 +38,6 @@ void end_handler(int sig){
     if(sig == SIGRTMIN + 4){
         end_messages[1] = 1;
     }
-    printf("Got end sig\n");
 }
 
 void* get_message(void* arg){
@@ -65,7 +64,7 @@ void* get_message(void* arg){
                 break;
             }
             default:{
-                if(ret == EBADF && end_messages[pd->client_id] == 1){
+                if(ret == EAGAIN && end_messages[pd->client_id] == 1){
                     printf("Server got a message %d\n", pd->client_id);
                     close(pd->client_fd);
                     sigsend(P_PID, pd->child_pid, client_sig + 2);
@@ -148,7 +147,6 @@ int main(int argc, char** argv){
             }
 
             pd[connects].client_fd = client_fd;
-            printf("Client %d fd = %d\n", connects, client_fd);
             pd[connects].client_id = connects;
 
             if(pthread_create(&tids[connects], NULL, get_message, &pd[connects]) != 0){
