@@ -52,6 +52,7 @@ void* get_message(void* arg){
 
     while(beg_messages[pd->client_id] != 1);
 
+    printf("Server start reading a message %d\n", pd->client_id);
     aio_read(&readrq);
     while(1){
         int ret = aio_error(&readrq);
@@ -151,7 +152,6 @@ int main(int argc, char** argv){
                 perror("Thread create error");
                 return 1;
             }
-            printf("Server start reading a message %d\n", connects);
             connects++;
         }
 
