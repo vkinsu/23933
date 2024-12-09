@@ -14,8 +14,9 @@
 #include <signal.h>
 
 typedef struct pthread_data{
-    int fd;
+    int client_fd;
     int client_id;
+    pid_t child_pid;
 } pthread_data;
 
 int end_messages[2];
@@ -30,7 +31,7 @@ void begin_handler(int sig){
     }
 }
 
-void end_handler(int sig, siginfo_t* sig_inf, void *arg){
+void end_handler(int sig){
     if(sig == SIGRTMIN + 1){
         end_messages[0] = 1;
     }
@@ -44,7 +45,7 @@ void* get_message(void* arg){
     
     struct aiocb readrq;
     memset(&readrq, 0, sizeof(readrq));
-    readrq.aio_fildes = pd->fd;
+    readrq.aio_fildes = pd->client_fd;
     char sym;
     readrq.aio_buf = &sym;
     readrq.aio_nbytes = 1;
@@ -58,8 +59,8 @@ void* get_message(void* arg){
             case 0:{
                 if(end_messages[pd->client_id] == 1 && sym == EOF){
                     int client_sig = SIGRTMIN + pd->client_id * 3;
-                    sigsend(P_ALL, 0, client_sig + 2);
-                    close(pd->fd);
+                    sigsend(P_PID, pd->child_pid, client_sig + 2);
+                    close(pd->client_fd);
                     return NULL;
                 }
                 break;
@@ -81,11 +82,8 @@ void set_reactions(){
     struct sigaction act;
     for(int id = 0; id < 2; id++){
         int sig = SIGRTMIN + id * 3;
-        memset(&act, 0, sizeof(act));
-        act.sa_flags |= SA_SIGINFO;
-        act.sa_sigaction = end_handler;
-        sigaction(sig + 1, &act, NULL);
         signal(sig, begin_handler);
+        signal(sig + 1, end_handler);
     }
 }
 
@@ -132,7 +130,9 @@ int main(int argc, char** argv){
     else{
         memset(end_messages, 0, sizeof(end_messages));
         pthread_t tids[2];
-        pthread_data clients_data[2];
+        pthread_data pd[2];
+        pd[0].child_pid = pid;
+        pd[1].child_pid = pid;
 
         printf("\nServer output:\n");
         int connects = 0;
@@ -143,11 +143,11 @@ int main(int argc, char** argv){
                 continue;
             }
 
-            clients_data[connects].fd = client_fd;
+            pd[connects].client_fd = client_fd;
             printf("Client %d fd = %d\n", connects, client_fd);
-            clients_data[connects].client_id = connects;
+            pd[connects].client_id = connects;
 
-            if(pthread_create(&tids[connects], NULL, get_message, &clients_data[connects]) != 0){
+            if(pthread_create(&tids[connects], NULL, get_message, &pd[connects]) != 0){
                 perror("Thread create error");
                 return 1;
             }
