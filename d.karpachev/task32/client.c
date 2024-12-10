@@ -5,6 +5,7 @@
 #include <sys/socket.h>
 #include <ctype.h>
 #include <sys/un.h>
+#include <sys/time.h>
 
 #define SOCK_PATH "./unix_socket"
 
@@ -38,6 +39,22 @@ int main() {
         }
 
         send(client_s, buf, strlen(buf), 0);
+
+        usleep(1000000 * strlen(buf));
+
+        ssize_t bytes_received = recv(client_s, buf, 1024, 0);
+        if (bytes_received > 0) {
+            buf[bytes_received] = '\0';
+            printf("Server response: %s\n", buf);
+        } 
+        else if (bytes_received == 0) {
+            printf("Server disconnected.\n");
+            break;
+        } 
+        else {
+            perror("Error receiving data from server");
+            break;
+        }
     }
 
     close(client_s);

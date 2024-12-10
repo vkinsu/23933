@@ -50,6 +50,7 @@ int main() {
                 buf[i] = (char)toupper(buf[i]);
             }
         }
+        buf[bcount] = '\0';
 
         printf("Upper recv: %s\n", buf);
     }
