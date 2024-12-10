@@ -6,54 +6,64 @@
 #include <sys/wait.h>
 #include <sys/types.h>
 
-
 #define BUFFER_SIZE 1024
 
+// Функция для записи текста в канал
+void write_to_pipe(int write_fd, const char *text) {
+    if (write(write_fd, text, strlen(text)) == -1) {
+        perror("write error");
+        exit(1);
+    }
+    close(write_fd);  // Закрываем конец канала после записи
+}
+
+// Функция для чтения текста из канала и преобразования в верхний регистр
+void read_and_transform_pipe(int read_fd) {
+    char buffer[BUFFER_SIZE];
+    ssize_t bytes_read = read(read_fd, buffer, sizeof(buffer) - 1);
+    if (bytes_read > 0) {
+        buffer[bytes_read] = '\0';
+
+        for (int i = 0; i < bytes_read; i++) {
+            buffer[i] = toupper((unsigned char)buffer[i]);
+        }
+
+        printf("Transformed text: \n%s", buffer);
+    } else if (bytes_read == -1) {
+        perror("read error");
+    }
+
+    close(read_fd);  // Закрываем конец канала после чтения
+}
+
+// Основная программа
 int main() {
     int pipe_fd[2];
     pid_t child_pid;
 
+    // Создаем канал
     if (pipe(pipe_fd) == -1) {
-        perror("pipe command error");
+        perror("pipe error");
         exit(1);
     }
 
+    // Создаем дочерний процесс
     if ((child_pid = fork()) == -1) {
-        perror("fork command error");
+        perror("fork error");
         exit(1);
     }
 
     if (child_pid == 0) {
-                            // Это дочерний процесс (пишет в канал)
-        close(pipe_fd[0]);  // Закрываем конец канала для чтения
-
+        // Дочерний процесс: пишет в канал
         const char *text = "Hello World! This is a test of the PIPE.\n";
-        write(pipe_fd[1], text, strlen(text));
-        close(pipe_fd[1]);  // Закрываем конец канала после записи
-
+        write_to_pipe(pipe_fd[1], text);
         exit(0);
     } else {
-                            // Это родительский процесс (читает из канала и преобразует текст)
-        close(pipe_fd[1]);  // Закрываем конец канала для записи
-
-        char buffer[BUFFER_SIZE];
-        ssize_t bytes_read;
-
-        bytes_read = read(pipe_fd[0], buffer, sizeof(buffer) - 1);
-        if (bytes_read > 0) {
-            buffer[bytes_read] = '\0';
-
-            for (int i = 0; i < bytes_read; i++) {
-                buffer[i] = toupper((unsigned char) buffer[i]);
-            }
-
-            printf("Transformed text: \n%s", buffer);
-        }
-
-        close(pipe_fd[0]);  // Закрываем конец канала после чтения
-
-        wait(NULL); // Ожидаем завершения дочернего процесса
+        // Родительский процесс: читает из канала и преобразует текст
+        read_and_transform_pipe(pipe_fd[0]);
+        wait(NULL);  // Ожидаем завершения дочернего процесса
     }
 
     return 0;
 }
+
