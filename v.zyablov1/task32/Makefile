@@ -1,11 +1,15 @@
 CC = gcc
-CFLAGS = -Wall -std=c99
+CFLAGS = -Wall -Wextra -std=c99
+SERVER_SOURCE  = server.c client_handler.c
+CLIENT_SOOURCE = client.c
 
 all: client server
 
-client: client.c
-	$(CC) $(CFLAGS) -o client client.c
+client: $(CLIENT_SOOURCE)
+	$(CC) $(CFLAGS) $(CLIENT_SOOURCE) -o client 
 
-server: server.c
-	$(CC) $(CFLAGS) -o server server.c
+server: $(SERVER_SOURCE)
+	$(CC) $(CFLAGS) $(SERVER_SOURCE)  -o server
 
+clean:
+	rm -f client server
