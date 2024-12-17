@@ -5,8 +5,8 @@
 // Если введено "q", завершаем программу
 /*
 if (strcmp(buffer, "q") == 0) {
-    printf("Exiting...\n");
-    exit_flag_custom = 1;
+	printf("Exiting...\n");
+	exit_flag_custom = 1;
 }*/
 // volatile int exit_flag_custom = 0;  // Глобальная переменная для завершения работы
 
