@@ -1,8 +1,8 @@
 server: server.c
-	$(CC) -o $@ $^ $(CFLAGS) -lsocket
+	$(CC) -o $@ $^ $(CFLAGS)
 
 client: client.c
-	$(CC) -o $@ $^ $(CFLAGS) -lsocket
+	$(CC) -o $@ $^ $(CFLAGS)
 
 clean:
 	rm -f client server
