@@ -1,7 +1,7 @@
 all: server client1 client2
 
 server: server.c
-	$(CC) -o $@ $^ $(CFLAGS)
+	$(CC) -o $@ $^ $(CFLAGS) -lrt
 
 client1: client1.c
 	$(CC) -o $@ $^ $(CFLAGS)
