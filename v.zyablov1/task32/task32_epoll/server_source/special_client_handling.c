@@ -14,11 +14,11 @@
 bool special_clients[MAX_CLIENTS] = {false}; // Инициализация
 
 void mark_client_as_special(int client_fd) {
-    special_clients[client_fd] = true;
+	special_clients[client_fd] = true;
 }
 
 bool is_special_client(int client_fd) {
-    return special_clients[client_fd];
+	return special_clients[client_fd];
 }
 
 void notify_special_clients(int epoll_fd) {
