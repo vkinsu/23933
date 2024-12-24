@@ -7,7 +7,7 @@
 int main(){
 	int pipe_fd[2]; // array for descriptors (input, output)
 	pid_t pid;
-	char buffer[256];
+	char buffer[256] = {0};
 
 	if (pipe(pipe_fd) == -1){
 		perror("failed creation of pipe\n");
@@ -31,7 +31,7 @@ int main(){
 	else{ // parent
 
 		const char* message = "Hello from parent process!!\n";
-		write(pipe_fd[1], message, strlen(message) + 1);
+		write(pipe_fd[1], message, strlen(message));
 			
 	}
 	close(pipe_fd[0]);

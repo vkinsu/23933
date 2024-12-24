@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <ctype.h>
+#include <string.h>
+
 
 #define SOCKET_PATH "/tmp/unix_sock"
 #define BUFFER_SIZE 256

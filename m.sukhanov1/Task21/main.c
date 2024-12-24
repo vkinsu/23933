@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <signal.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 int count = 0;
 
@@ -10,20 +11,19 @@ void sigcatch(int sig){
 		exit(0);
 	}
 	if (sig == SIGINT){
-		printf("\a");
+		write(fileno(stdout), "\a", 1);
 		count ++;
 	}
-	printf("%d primes computed\n", count);
+	
 
 }
 
 int main(){
-	sigset(SIGINT, sigcatch);
-	sigset(SIGQUIT, sigcatch);
+	signal(SIGINT, sigcatch);
+	signal(SIGQUIT, sigcatch);
 
 	while(1)
 		pause();
-
 	exit(1);
 
 }

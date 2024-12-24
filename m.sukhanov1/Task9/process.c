@@ -21,7 +21,7 @@ int main(){
 	if (pid > 0){
 		int status;
 		waitpid(pid, &status, 0);
-		printf("Parent: text from parent process after completing of precestor's");
+		printf("Parent: text from parent process after completing of precestor's\n");
 
 	}
 	return 0;

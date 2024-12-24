@@ -4,6 +4,7 @@
 #include <termios.h>
 #include <fcntl.h>
 #include <string.h>
+#include <signal.h>
 
 #define S_LENGTH 40
 #define ERASE 127
@@ -11,6 +12,9 @@
 #define CTRL_W 23
 #define CTRL_D 4
 #define CTRL_G 7
+
+struct termios savtty;
+int fd;
 
 void erase_char(int *pos, char *str){
 	if ((*pos) == 0){
@@ -22,12 +26,19 @@ void erase_char(int *pos, char *str){
 	}	
 }
 
+void handler(int sig){
+    if (sig == SIGINT){
+        tcsetattr(fd, TCSAFLUSH, &savtty);
+    }
+}
+
 int main(){
 	char ch, buf_str[S_LENGTH+1] = {0};
 
-	struct termios tty, savtty;
+	struct termios tty;
 
-	int space_cnt = 0, pos, fd = open("/dev/tty", O_RDONLY);
+	int space_cnt = 0, pos;
+      	fd = open("/dev/tty", O_RDONLY);
 
 	pos = 0;
 
@@ -109,12 +120,13 @@ int main(){
 			
 			else if (space_cnt != 0){
 
-				printf("\n\nBUF_STRING:\n");
+				/*printf("\n\nBUF_STRING:\n");
 				for (int j = 0; j < S_LENGTH+1; j++){
 					putchar(buf_str[j]);
 				}
 				printf("\n\nEND\n");
-
+                */
+                
 				for (int j = pos; j < S_LENGTH+1; j++)
 					write(fileno(stdout), " ", 1);
 				write(fileno(stdout), "\n", 1);

@@ -20,7 +20,7 @@ int main(int argc, char *argv[]){
 	}
 
     if (pid == 0){ // child
-		execlp("./child",  argv[1], (char *) 0);
+		execvp("./child", argv );
 		perror("this line should never get printed\n");
 		exit(5);
 	}
